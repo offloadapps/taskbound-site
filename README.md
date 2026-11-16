@@ -16,7 +16,8 @@ The website for Taskbound: a landing page, the privacy policy and the web versio
 
 ## Updating the web version
 
-Automatic: after each push to `main` in `offloadapps/taskbound` builds and passes its checks, that repository's Build
-workflow ("Update the website") copies `dist/web` into `app/` here and pushes it as `Taskbound <app.taskbound@gmail.com>`.
-It uses the deploy key set up in the taskbound README ("Website"). Don't edit `app/` by hand: the next build replaces it.
+Only through a **release**: the Release workflow in `offloadapps/taskbound` (run only when the developer asks) publishes a
+numbered APK and then copies `dist/web` into `app/` here, committed as `Taskbound <app.taskbound@gmail.com>`
+("Web version: Taskbound <version>"). Ordinary pushes to taskbound don't touch the site. It uses the deploy key described
+in the taskbound README ("Builds, releases and the website"). Don't edit `app/` by hand: the next release replaces it.
 If the keep's sculpt changes, the landing page picks it up from `app/keep-splat.js` with no other change.
