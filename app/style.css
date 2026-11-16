@@ -483,3 +483,70 @@ select.set-in { min-width: 160px }
 .heroes.small .hero-card { padding: 8px 2px }
 .heroes.small .hero-name { font-size: 13px }
 .first-go .ember-btn { flex: none; width: 100% }
+
+/* ---------- the hero (look.md, "The hero on Home"; "Four callings that read apart") ---------- */
+.hero-pic, .hero3d { image-rendering: pixelated; display: block }
+.hero-spot { position: absolute; z-index: 1; bottom: calc(100% - 6px); left: 2px; padding: 0; border: 0; background: none; line-height: 0; cursor: grab }
+.hero-spot:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px }
+.hero-glow { position: absolute; left: 12%; right: 12%; bottom: 14px; height: 26px; border-radius: 50%; background: radial-gradient(ellipse, var(--ember-glow), transparent 70%); pointer-events: none }
+.hero-say { position: absolute; z-index: 1; bottom: calc(100% + 76px); left: 104px; max-width: min(200px, calc(100% - 120px)); margin: 0; padding: 9px 11px; font-size: 14px; font-style: italic; line-height: 1.35; color: var(--bone); background: var(--panel); box-shadow: inset 0 0 0 1px var(--edge); clip-path: var(--cut-sm); pointer-events: none }
+.who-row { align-items: baseline }
+.who { display: flex; align-items: baseline; gap: 10px; min-width: 0 }
+.who .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.who-title { color: var(--ink-gilt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.renown { flex: none; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); white-space: nowrap }
+.renown-bar { display: block; width: 56px; height: 6px; background: var(--step-off); overflow: hidden }
+.renown-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--flame-deep), var(--ember), var(--step-on-edge)) }
+.renown.wide { font-size: 14px }
+.renown.wide .renown-bar { flex: 1; width: auto }
+.rooms-count { margin-top: -10px; font-size: 12px }
+.hero-sheet .hs-stage { position: relative; display: flex; justify-content: center; padding-top: calc(56px + env(safe-area-inset-top)) }
+.hero-sheet .hs-stage .hero-glow { bottom: 10px; left: 30%; right: 30% }
+.hero-sheet .room-body { margin-top: 0 }
+.hero-sheet .room-body .title { font-size: 52px }
+.hs-worn li > div { flex: 1; min-width: 0; display: flex; flex-direction: column }
+.hs-worn .name { color: var(--bone); font-weight: 700 }
+.hs-worn .meta { font-size: 13px }
+.room-hero { position: absolute; z-index: 1; left: 50%; bottom: 6%; transform: translateX(-50%); pointer-events: none }
+.worn .knight .hero-pic { margin: -8px 0 }
+.set-you { display: flex; gap: 14px; align-items: center }
+.set-you > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px }
+.ware .try { padding: 0; border: 0; background: none; color: var(--bone); text-align: left; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; min-height: 28px; cursor: pointer }
+.ware .try.on { color: var(--ember) }
+.try-on { font-weight: 700 }
+/* the creator */
+.first-sheet[data-step="welcome"] { background: var(--first) }
+.first-page.cr { padding-top: calc(26px + env(safe-area-inset-top)); gap: 8px }
+.first-page.cr .title { font-size: 40px; margin-bottom: 0 }
+.first-page.cr h2.title { font-size: 34px }
+.cr-steps { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--hint) }
+.cr-steps b { color: var(--card-name-on) }
+.cr-stage { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 120px }
+.cr-turn { flex: none }
+.cr-chips { display: flex; flex-wrap: wrap; gap: 8px }
+.cr-chips.four { display: grid; grid-template-columns: 1fr 1fr }
+.chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--edge-soft); background: var(--field); color: var(--bone); font-size: 15px; font-weight: 700; clip-path: var(--cut-sm) }
+.chip.on { border-color: var(--ember); background: var(--chosen); color: var(--card-name-on); box-shadow: inset 0 0 12px var(--ember-glow) }
+.cr-sw { display: flex; flex-wrap: wrap; gap: 8px }
+.sw { width: 44px; height: 44px; padding: 0; border: 2px solid var(--edge-soft); background: var(--sw); clip-path: var(--cut-sm) }
+.sw[data-cloak="-1"] { background: linear-gradient(135deg, transparent 45%, var(--room-hollow) 45%, var(--room-hollow) 55%, transparent 55%) }
+.sw.on { border-color: var(--ember); box-shadow: inset 0 0 0 2px var(--void), 0 0 12px var(--ember-glow) }
+.first-go.row { flex-direction: row; gap: 10px }
+.first-go.row .ember-btn { flex: 1 }
+.first-go.row .ghost-btn { flex: none }
+/* the first minute's coach */
+.tour { position: fixed; z-index: 8; left: 12px; right: 12px; max-width: 440px; margin: 0 auto; padding: 14px 16px 6px; font-size: 15px; line-height: 1.45; color: var(--bone); background: var(--rite-bg); box-shadow: inset 0 0 0 1px var(--ember), 0 0 24px var(--ember-glow); clip-path: var(--cut) }
+.tour p { margin: 0 }
+.tour b { color: var(--card-name-on) }
+.tour-go { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 6px }
+.tour-go .linkbtn { color: var(--muted); font-size: 14px; margin-left: auto }
+.tour-go .ember-btn { flex: 1 1 100% }
+.tour.at-well { top: calc(52px + env(safe-area-inset-top)) }
+.tour.at-top { bottom: calc(var(--nav-h) + 12px) }
+.tour.at-home { top: calc(176px + env(safe-area-inset-top)) }
+.tour.at-room { bottom: calc(14px + env(safe-area-inset-bottom)) }
+.touring .hero-say { display: none }
+@media (max-width: 359px) {
+  .hero-say { left: 92px; font-size: 13px }
+  .renown-bar { width: 40px }
+}

@@ -241,7 +241,8 @@ const ART = (() => {
     });
     if (a) { // whoever you are: out, then home
       const t = away.frac < .5 ? away.frac * 2 : (1 - away.frac) * 2, kx = cx + (a.x - cx) * t, ky = cy + (a.y - cy) * t;
-      h += `<g shape-rendering="crispEdges" transform="translate(${Math.round(kx - 12)} ${Math.round(ky - 30)})">${sprite(HEROES[away.cls] ? HEROES[away.cls].rows : KNIGHT, (HEROES[away.cls] || HEROES.knight).pal)}</g>`;
+      if (away.pic) { const w = 21, hh = away.cls === 'barbarian' ? 35 : 32; h += `<image href="${away.pic}" x="${Math.round(kx - w / 2)}" y="${Math.round(ky - hh)}" width="${w}" height="${hh}" style="image-rendering:pixelated"/>` }
+      else h += `<g shape-rendering="crispEdges" transform="translate(${Math.round(kx - 12)} ${Math.round(ky - 30)})">${sprite(HEROES[away.cls] ? HEROES[away.cls].rows : KNIGHT, (HEROES[away.cls] || HEROES.knight).pal)}</g>`;
     }
     return h + '</svg>';
   }
@@ -530,5 +531,199 @@ const ART = (() => {
     ctx.drawImage(v.buf, 0, 0);
   }
 
-  return { keep, keep3d, room, candle, arch, knight, hero, HEROES: Object.keys(HEROES), chart, ledge, stars, motes, store, icon, runeHtml, rail, frame };
+
+  /* The hero in 3D (look.md, "Four callings that read apart"): each calling sculpted in parts (art/hero_splat_scene.js) and
+     baked into Gaussian splats (art/hero_splat.js writes hero-splat.js). A look is put together from parts: a body, arms in a
+     pose, a helm, a weapon (and a shield for the knight), a cloak and a surcoat; colours are swapped as it is drawn (the
+     cloak, the surcoat, and the tier of armour and weapon). Splats are drawn nearest first as solid dabs on a small pixel
+     grid, then, like a pixel artist: a dark outline round the figure, a darker seam where two pieces meet, and moonlight on
+     the upper left edge of each piece (at small sizes only the outer rim and seams between different colours).
+     fig = { cls, body, helm, weapon, off, pose, cloak (0-4 or -1), tabard (0-4), armour (tier 0-5), arms (tier 0-5) } */
+  const HX = { parts: {}, pal: null };
+  const hexrgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  function hpart(key) {
+    if (HX.parts[key]) return HX.parts[key];
+    if (typeof HERO_SPLAT === 'undefined' || !HERO_SPLAT.parts[key]) return null;
+    const S = HERO_SPLAT.parts[key], bin = atob(S.d), n = S.n, ls = HERO_SPLAT.ls;
+    const P = new Float32Array(n * 3), Cv = new Float32Array(n * 6), col = new Uint8Array(n), pc = new Uint8Array(n);
+    const i16 = o => { const v = bin.charCodeAt(o) | bin.charCodeAt(o + 1) << 8; return v > 32767 ? v - 65536 : v };
+    const i8 = o => { const v = bin.charCodeAt(o); return v > 127 ? v - 256 : v };
+    for (let i = 0; i < n; i++) {
+      const o = i * 14;
+      P[i * 3] = i16(o) / 1000; P[i * 3 + 1] = i16(o + 2) / 1000; P[i * 3 + 2] = i16(o + 4) / 1000;
+      const a = i8(o + 6) * ls, b = i8(o + 7) * ls, c = i8(o + 8) * ls, d = i8(o + 9) * ls, e = i8(o + 10) * ls, f = i8(o + 11) * ls;
+      Cv.set([a * a, a * b, a * d, b * b + c * c, b * d + c * e, d * d + e * e + f * f], i * 6);
+      col[i] = bin.charCodeAt(o + 12); pc[i] = bin.charCodeAt(o + 13);
+    }
+    return (HX.parts[key] = { n, P, Cv, col, pc });
+  }
+  // cloth colours: wine, midnight, moss, ash, umber (the order of the creator's swatches)
+  const CLOTH_RAMPS = [[18, 21], [22, 25], [26, 29], [30, 33], [52, 55]];
+  // tiers: 0-1 old iron, 2 steel, 3 bright, 4 gilded, 5 moonsteel; and the same idea for linen, leather and fur
+  // 0 what you set out in, then the Market's five: e.g. old iron, steel, blued steel, bright, gilded, moonsteel
+  const TIER = {
+    steel: [['#1c1c20', '#36343a', '#58565e', '#848088', '#b0acb2'], null, ['#141a26', '#26324a', '#3e5272', '#64809e', '#9ab0c8'],
+      ['#22283a', '#40506c', '#6e82a4', '#a4b6d2', '#e2eaf6'], ['#2a2416', '#54482c', '#8a7a4c', '#c8b47a', '#f4e6b4'], ['#1c2a3c', '#34587a', '#5e90b8', '#9cc8e4', '#e4f6ff']],
+    linen: [null, ['#3a3226', '#62564a', '#8e826e', '#b4a890'], ['#46423a', '#7e776a', '#b8b09c', '#e6dece'], ['#504c46', '#8c867c', '#c8c2b6', '#f2eee4'], ['#4a3e2a', '#8a7650', '#c8b07a', '#f0dca8'], ['#3a4656', '#6a7e94', '#a2b6cc', '#e0ecf8']],
+    leather: [null, ['#26160c', '#44281a', '#64402a', '#86603e'], ['#1e120c', '#382216', '#56361f', '#78502c'], ['#141218', '#24202a', '#3a3442', '#58506a'], ['#141218', '#24202a', '#3a3442', '#8a7040'], ['#0e1424', '#1a2640', '#2c3e62', '#4a6496']],
+    fur: [null, ['#3a3836', '#5c5a56', '#86827c', '#b0aca4'], ['#201812', '#3a2c20', '#5a4634', '#7c6450'], ['#2a1a10', '#4e3220', '#7a5234', '#a8784e'], ['#3a2c16', '#6a5430', '#a08450', '#d4b47a'], ['#5a6474', '#8a96a8', '#bcc6d4', '#eef2f8']],
+    gold: [['#3a2a12', '#5e4a26', '#8a7440', '#b09a60'], null, ['#3a1e10', '#6e3a1c', '#a8602e', '#d8904e'], ['#5a3a08', '#a06a10', '#e0a828', '#ffe078'], ['#4a3010', '#86601e', '#d4a84a', '#fff0a8'], ['#3a4656', '#6a7e94', '#a2b6cc', '#e8f4ff']]
+  };
+  const TIER_RAMP = { steel: [1, 5], linen: [48, 51], leather: [10, 13], fur: [40, 43] };
+  const MAIN_MAT = { knight: 'steel', cleric: 'linen', bandit: 'leather', barbarian: 'fur' };
+  function heroParts(f) {
+    const pose = f.pose === 'raise' ? 'raise' : 'rest', c = f.cls, b = f.body;
+    const list = [[`body-${b}`, 'a'], [`arms-${b}-${pose}`, 'a'], [`helm-${f.helm}`, 'a'], [`w-${f.weapon}-${pose}`, 'w']];
+    if (f.off && f.off !== 'none') list.push([`off-${f.off}`, 'o']);
+    if (f.tabard !== -1) list.push(['tabard', 'a']);
+    if (f.cloak !== -1 && c !== 'barbarian') list.push(['cloak', 'a']);
+    return list.map(([k, kind]) => [c + '/' + k, kind]).filter(([k]) => typeof HERO_SPLAT !== 'undefined' && HERO_SPLAT.parts[k]);
+  }
+  // the colour of palette index i in a part of this kind, for this look
+  function heroColour(f) {
+    if (!HX.pal) HX.pal = HERO_SPLAT.pal.map(hexrgb);
+    const base = HX.pal, swap = { a: base.slice(), w: base.slice(), o: base.slice() };
+    const put = (arr, [lo, hi], cols) => { for (let i = lo; i <= hi; i++) arr[i] = cols[Math.min(cols.length - 1, i - lo)] };
+    const ramp = ([lo, hi]) => base.slice(lo, hi + 1);
+    const cl = f.cloak >= 0 ? CLOTH_RAMPS[f.cloak] : CLOTH_RAMPS[0], tb = CLOTH_RAMPS[f.tabard >= 0 ? f.tabard : 0];
+    for (const k of ['a', 'w', 'o']) { put(swap[k], [18, 21], ramp(cl)); put(swap[k], [56, 59], ramp(tb)) }
+    const mat = MAIN_MAT[f.cls], at = TIER[mat][f.armour || 0];
+    if (at) { put(swap.a, TIER_RAMP[mat], at.map(hexrgb)); put(swap.o, TIER_RAMP[mat], at.map(hexrgb)) }
+    const wt = TIER.steel[f.arms || 0], wg = TIER.gold[f.arms || 0];
+    if (wt) put(swap.w, [1, 5], wt.map(hexrgb));
+    if (wg) put(swap.w, [14, 17], wg.map(hexrgb));
+    return swap;
+  }
+  /* Draws a look into a w x h pixel grid at a turn of yaw; s is pixels per unit (the figure is about 3.3 units tall, 3.9 for
+     the barbarian with his horns). Returns ImageData, transparent round the figure. */
+  function heroDraw(ctx, f, w, h, yaw, s) {
+    const parts = heroParts(f).map(([k, kind]) => [hpart(k), kind]).filter(([p]) => p);
+    const swap = heroColour(f), pitch = .08;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const R = [cy, 0, sy, sp * sy, cp, -sp * cy, -cp * sy, sp, cp * cy];
+    const ox = w / 2, oy = h - 2 - 0.05 * s, N = w * h;
+    const col = new Int32Array(N).fill(-1), pcs = new Uint16Array(N), zb = new Float32Array(N).fill(-1e9);
+    for (const [p, kind] of parts) {
+      const { n, P, Cv } = p, pal = swap[kind];
+      for (let i = 0; i < n; i++) {
+        const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+        const X = R[0] * x + R[1] * y + R[2] * z, Y = R[3] * x + R[4] * y + R[5] * z, Z = R[6] * x + R[7] * y + R[8] * z;
+        const sx = ox + s * X, syy = oy - s * Y;
+        if (sx < -4 || sx > w + 4 || syy < -4 || syy > h + 4) continue;
+        const a0 = s * R[0], a1 = s * R[1], a2 = s * R[2], b0 = -s * R[3], b1 = -s * R[4], b2 = -s * R[5];
+        const q = i * 6, s00 = Cv[q], s01 = Cv[q + 1], s02 = Cv[q + 2], s11 = Cv[q + 3], s12 = Cv[q + 4], s22 = Cv[q + 5];
+        const u0 = s00 * a0 + s01 * a1 + s02 * a2, u1 = s01 * a0 + s11 * a1 + s12 * a2, u2 = s02 * a0 + s12 * a1 + s22 * a2;
+        const w0 = s00 * b0 + s01 * b1 + s02 * b2, w1 = s01 * b0 + s11 * b1 + s12 * b2, w2 = s02 * b0 + s12 * b1 + s22 * b2;
+        const A = a0 * u0 + a1 * u1 + a2 * u2 + .12, Bq = b0 * u0 + b1 * u1 + b2 * u2, Cc = b0 * w0 + b1 * w1 + b2 * w2 + .12, det = A * Cc - Bq * Bq;
+        if (det <= 0) continue;
+        const k0 = Cc / det, k1 = -Bq / det, k2 = A / det, ex = Math.min(2 * Math.sqrt(A), 12), ey = Math.min(2 * Math.sqrt(Cc), 12);
+        const x0 = Math.max(0, Math.floor(sx - ex)), x1 = Math.min(w - 1, Math.ceil(sx + ex)), y0 = Math.max(0, Math.floor(syy - ey)), y1 = Math.min(h - 1, Math.ceil(syy + ey));
+        const c = p.col[i], pc = p.pc[i];
+        for (let yy = y0; yy <= y1; yy++) {
+          const dy = yy + .5 - syy;
+          for (let xx = x0; xx <= x1; xx++) {
+            const dx = xx + .5 - sx;
+            if (k0 * dx * dx + k2 * dy * dy + 2 * k1 * dx * dy > 1.3) continue;
+            const o = yy * w + xx;
+            if (Z <= zb[o]) continue;
+            zb[o] = Z; col[o] = c | (kind === 'w' ? 256 : kind === 'o' ? 512 : 0); pcs[o] = pc;
+          }
+        }
+      }
+    }
+    // a lone hole inside the figure takes a neighbour (splats leave pinholes at small sizes)
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const o = y * w + x; if (col[o] >= 0) continue;
+      if (col[o - 1] >= 0 && col[o + 1] >= 0) { col[o] = col[o - 1]; pcs[o] = pcs[o - 1] } else if (col[o - w] >= 0 && col[o + w] >= 0) { col[o] = col[o - w]; pcs[o] = pcs[o - w] }
+    }
+    const small = s < 16, img = ctx.createImageData(w, h), out = img.data, LINE = [10, 7, 16];
+    const rgb = v => { const kind = v >> 8 === 1 ? 'w' : v >> 8 === 2 ? 'o' : 'a'; return swap[kind][v & 255] };
+    const has = (x, y) => x >= 0 && y >= 0 && x < w && y < h && col[y * w + x] >= 0;
+    const far = (a, b) => Math.abs(a[0] + a[1] + a[2] - b[0] - b[1] - b[2]) > 150 || Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]), Math.abs(a[2] - b[2])) > 70;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const o = y * w + x, q = o * 4;
+      if (col[o] < 0) {
+        if (has(x + 1, y) || has(x - 1, y) || has(x, y + 1) || has(x, y - 1)) { out[q] = LINE[0]; out[q + 1] = LINE[1]; out[q + 2] = LINE[2]; out[q + 3] = 255 }
+        continue;
+      }
+      let c = rgb(col[o]);
+      const me = pcs[o], dark = c[0] + c[1] + c[2] < 40;
+      const up = y > 0 ? (col[o - w] < 0 ? -1 : pcs[o - w]) : -1, left = x > 0 ? (col[o - 1] < 0 ? -1 : pcs[o - 1]) : -1;
+      const rim = small ? (up === -1 || left === -1) : (up !== me || left !== me);
+      let seam = false;
+      for (const [xx, yy] of [[x, y + 1], [x + 1, y]]) {
+        if (!has(xx, yy)) continue; const o2 = yy * w + xx;
+        if (pcs[o2] !== me && (!small || far(rgb(col[o2]), c))) seam = true;
+      }
+      if (!dark && seam && !rim) c = c.map(v => v * .5 | 0);
+      else if (!dark && rim) c = c.map(v => Math.min(255, v + (255 - v) * .28 + 6 | 0));
+      out[q] = c[0]; out[q + 1] = c[1]; out[q + 2] = c[2]; out[q + 3] = 255;
+    }
+    return img;
+  }
+  // a still picture of a look, as a data URL (cached): for cards, the Market, the star chart and rooms
+  const HPIC = new Map();
+  function heroPic(f, s = 25, yaw = .35) {
+    if (typeof HERO_SPLAT === 'undefined') return '';
+    const key = JSON.stringify([f, s, yaw]);
+    if (HPIC.has(key)) return HPIC.get(key);
+    let url = '';
+    try {
+      const [w, h] = heroSize(f, s), c = document.createElement('canvas');
+      c.width = w; c.height = h; const ctx = c.getContext('2d');
+      ctx.putImageData(heroDraw(ctx, f, w, h, yaw, s), 0, 0); url = c.toDataURL('image/png');
+    } catch (e) { url = '' }
+    if (HPIC.size > 60) HPIC.clear();
+    HPIC.set(key, url);
+    return url;
+  }
+  const heroSize = (f, s, tall) => [Math.ceil(s * 2.6), Math.ceil(s * ((tall || f.pose === 'raise') ? 4.7 : f.cls === 'barbarian' ? 4.3 : 3.9))];
+  /* A hero you can turn: drag left and right to spin it all the way round; let go and it eases back to facing you.
+     el gets a canvas drawn at x px per pixel. opts: { s (pixels per unit), px (screen pixels per pixel), yaw, label }.
+     Returns { set(f), raise(ms) } or null where it can't draw. */
+  function hero3d(el, f, opts = {}) {
+    if (typeof HERO_SPLAT === 'undefined') return null;
+    let v = el._h3;
+    const s = opts.s || 12, px = opts.px || 3, rest = opts.yaw === undefined ? .35 : opts.yaw;
+    if (!v) {
+      let c, ctx;
+      try { c = document.createElement('canvas'); ctx = c.getContext('2d') } catch (e) { return null }
+      if (!ctx) return null;
+      v = el._h3 = { c, ctx, f, yaw: rest, held: false, raf: 0, up: 0 };
+      c.className = 'hero3d'; c.setAttribute('role', 'img'); c.style.imageRendering = 'pixelated'; c.style.touchAction = 'pan-y';
+      el.innerHTML = ''; el.appendChild(c);
+      const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const paint = () => {
+        const [w, h] = heroSize(v.f, s, true);
+        if (c.width !== w || c.height !== h) { c.width = w; c.height = h; c.style.width = w * px + 'px'; c.style.height = h * px + 'px' }
+        const ff = Date.now() < v.up ? Object.assign({}, v.f, { pose: 'raise' }) : v.f;
+        ctx.putImageData(heroDraw(ctx, ff, w, h, v.yaw, s), 0, 0);
+      };
+      const frame = () => {
+        v.raf = 0;
+        if (!v.held) { // ease back to facing you, the short way round
+          let d = ((v.yaw - rest) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+          d -= d * (still() ? 1 : .1); v.yaw = rest + d;
+          if (Math.abs(d) < .003) v.yaw = rest;
+        }
+        paint();
+        if ((!v.held && v.yaw !== rest) || Date.now() < v.up + 50) v.raf = requestAnimationFrame(frame);
+      };
+      v.kick = () => { if (!v.raf) v.raf = requestAnimationFrame(frame) };
+      let sx = 0, y0 = 0, moved = false;
+      c.addEventListener('pointerdown', e => { v.held = true; moved = false; sx = e.clientX; y0 = v.yaw; try { c.setPointerCapture(e.pointerId) } catch (er) { } });
+      c.addEventListener('pointermove', e => { if (!v.held) return; if (Math.abs(e.clientX - sx) > 4) moved = true; v.yaw = y0 + (e.clientX - sx) * .02; v.kick() });
+      const up = () => { if (v.held) { v.held = false; v.kick() } };
+      c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up); c.addEventListener('lostpointercapture', up);
+      c.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault() } }, true);
+      v.paint = paint;
+      paint();
+    }
+    v.f = f;
+    if (opts.label) v.c.setAttribute('aria-label', opts.label);
+    v.paint();
+    return { set: nf => { v.f = nf; v.paint() }, raise: (ms = 1600) => { v.up = Date.now() + ms; v.kick() }, el: v.c };
+  }
+
+  return { keep, keep3d, hero3d, heroPic, heroSize, room, candle, arch, knight, hero, HEROES: Object.keys(HEROES), chart, ledge, stars, motes, store, icon, runeHtml, rail, frame };
 })();

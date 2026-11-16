@@ -27,13 +27,17 @@
       </div>
     </header>
     <section class="relight" aria-labelledby="relight-h">
+      <!-- The hero, a little way out from the keep (look.md, "The hero on Home"): drag to turn, tap for their sheet -->
+      <button type="button" class="hero-spot" id="hero-spot"><span class="hero-glow" aria-hidden="true"></span><span id="hero-art"></span></button>
+      <p class="hero-say" id="hero-say"></p>
       <div class="ledge" aria-hidden="true" data-art="ledge"></div>
-      <div class="row-between">
-        <h2 id="relight-h" class="title">The keep remembers</h2>
-        <span class="muted" id="rooms-count"></span>
+      <div class="row-between who-row">
+        <div class="who"><h2 id="relight-h" class="title">Bramble</h2><span class="eyebrow who-title" id="hero-title"></span></div>
+        <span class="renown" id="renown" role="img"><span class="renown-bar"><span id="renown-bar"></span></span><span id="renown-n"></span></span>
       </div>
       <div class="arches" id="arches"></div>
       <p class="muted" id="relight-line"></p>
+      <span class="muted rooms-count" id="rooms-count"></span>
       <div class="offer" id="offer"></div>
     </section>
   </section>
@@ -188,6 +192,23 @@
   </section>
 </div>
 
+<!-- The hero's own sheet: turn them, see what they wear, change their look -->
+<div class="room-sheet hero-sheet" id="herosheet" role="dialog" aria-modal="true" aria-labelledby="hs-name" hidden>
+  <div class="room-top">
+    <button type="button" class="room-back" id="close-hero" data-icon="back"><span>The keep</span></button>
+  </div>
+  <div class="hs-stage"><span class="hero-glow" aria-hidden="true"></span><div id="hs-art"></div></div>
+  <p class="fine center">Drag to turn.</p>
+  <section class="room-body">
+    <p class="eyebrow" id="hs-eyebrow"></p>
+    <h1 id="hs-name" class="title"></h1>
+    <div class="renown wide"><span class="renown-bar"><span id="hs-bar"></span></span><span id="hs-renown"></span></div>
+    <h2 class="eyebrow room-count">Worn</h2>
+    <ul class="in-room hs-worn" id="hs-worn"></ul>
+    <div class="room-end"><button type="button" class="ember-btn" data-act="look">Change your look</button></div>
+  </section>
+</div>
+
 <!-- Settings: a full-screen sheet in the candles' night colours -->
 <div class="edit-sheet" id="settings" role="dialog" aria-modal="true" aria-labelledby="settings-h" hidden>
   <div class="edit-card">
@@ -201,15 +222,18 @@
   </div>
 </div>
 
-<!-- The first start: welcome, three small rites, and choosing who you are (game-loop.md) -->
+<!-- The creator: on the first start (welcome, calling, look, kit) and from the hero's sheet (game-loop.md) -->
 <div class="first-sheet" id="first" role="dialog" aria-modal="true" aria-labelledby="first-h" hidden>
   <div id="first-body" class="first-body"></div>
 </div>
 
+<!-- The first minute's coach: one card at a time on the real screens -->
+<div class="tour" id="coach" role="status" aria-live="polite" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="tasks-core.js"></script>
 <script src="keep-splat.js"></script>
+<script src="hero-splat.js"></script>
 <script src="art.js"></script>
 <script src="app.js"></script>
 </body>
