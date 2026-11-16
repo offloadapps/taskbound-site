@@ -98,7 +98,10 @@ ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;he
   box-shadow:inset 0 0 0 1px #4a2a44;display:grid;gap:8px;justify-items:center;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .hero-card:hover{transform:translateY(-6px)}
 .hero-card:hover,.hero-card.lit{background:radial-gradient(ellipse 80% 70% at 50% 38%,#4a1c1a 0%,#24101a 60%,#160a14 100%);box-shadow:inset 0 0 0 1.5px #c8a462}
-.hero-card img{width:min(100%,168px);height:auto;aspect-ratio:24/30;image-rendering:pixelated;filter:drop-shadow(0 12px 10px rgba(0,0,0,.6))}
+.hero-card .turn{position:relative;width:calc(var(--w) * 3px);height:calc(var(--h) * 3px);margin-top:calc((78 - var(--h)) * 3px);overflow:hidden;filter:drop-shadow(0 12px 10px rgba(0,0,0,.6))}
+.hero-card .turn img{position:absolute;left:0;top:0;width:calc(var(--w) * 48px);height:calc(var(--h) * 3px);max-width:none;image-rendering:pixelated;animation:turn 9.6s steps(16) infinite}
+.hero-card .turn img.still{display:none;width:100%;animation:none}
+@keyframes turn{to{transform:translateX(-100%)}}
 .hero-card b{font:400 2.2rem/1 var(--f-display);color:var(--bone)}
 .hero-card span{color:var(--muted);font-size:.98rem;max-width:22ch}
 
@@ -123,6 +126,7 @@ ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;he
 .js .phone.reveal{translate:0 60px}
 @media (prefers-reduced-motion:reduce){
   .js .reveal{opacity:1;translate:none;transition:none}.cue i{animation:none}.hero-card{transition:none}
+  .hero-card .turn img{display:none}.hero-card .turn img.still{display:block}
   #world{transition:none}
 }
 
@@ -213,7 +217,7 @@ ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;he
         <h2 id="keep-h">Embers wake the keep.</h2>
         <p class="lead">Finished tasks give you embers. Offer them to the keep and its rooms wake one window at a time. Watch the keep behind these words: it wakes as you read.</p>
       </div>
-      <div class="phone reveal" style="--tilt:2deg"><img src="img/shots/home.jpg" alt="Home: the keep on its stone spire under a ringed moon, five windows lit, with Offer buttons below." loading="lazy" width="780" height="1688"></div>
+      <div class="phone reveal" style="--tilt:2deg"><img src="img/shots/home.jpg" alt="Home: the keep on its stone spire under a ringed moon, four windows lit, the knight standing at its foot with their name, title and Renown." loading="lazy" width="780" height="1688"></div>
     </div></div>
   </section>
 </main>
@@ -240,13 +244,13 @@ ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;he
   <div class="head"><div class="veil reveal">
     <p class="eyebrow">Your hero</p>
     <h2 id="who-h">Who wakes the keep?</h2>
-    <p class="lead">Choose who you are and give them a name. They carry your finished tasks out into the world, and wear everything you earn.</p>
+    <p class="lead">Choose a calling, then what hides your face, your colours and your first kit, and give them a name. They stand at the foot of the keep, carry your finished tasks out into the night, and wear everything you earn.</p>
   </div></div>
   <div class="heroes">
-    <figure class="hero-card reveal"><img src="img/art/hero-knight.svg" alt="" width="168" height="210"><b>Knight</b><span>Steady and sworn. Keeps the old vows of the keep.</span></figure>
-    <figure class="hero-card reveal"><img src="img/art/hero-cleric.svg" alt="" width="168" height="210"><b>Cleric</b><span>Carries a lantern for anyone tired or lost.</span></figure>
-    <figure class="hero-card reveal"><img src="img/art/hero-bandit.svg" alt="" width="168" height="210"><b>Bandit</b><span>Quiet feet, quick hands, a soft spot for strays.</span></figure>
-    <figure class="hero-card reveal"><img src="img/art/hero-barbarian.svg" alt="" width="168" height="210"><b>Barbarian</b><span>Big, warm and loud. Carries the heavy things.</span></figure>
+    <figure class="hero-card reveal"><span class="turn" style="--w:47;--h:71" role="img" aria-label="The knight, turning"><img src="img/art/hero-knight-turn.png" alt="" width="2256" height="213"><img class="still" src="img/art/hero-knight.png" alt="" width="141" height="213"></span><b>Knight</b><span>Sworn to the keep, long ago. Mail under plate, a great helm, a sword and a shield.</span></figure>
+    <figure class="hero-card reveal"><span class="turn" style="--w:47;--h:71" role="img" aria-label="The cleric, turning"><img src="img/art/hero-cleric-turn.png" alt="" width="2256" height="213"><img class="still" src="img/art/hero-cleric.png" alt="" width="141" height="213"></span><b>Cleric</b><span>Keeps the chapel quiet. Long robes, a deep hood, a sun staff and the book of hours.</span></figure>
+    <figure class="hero-card reveal"><span class="turn" style="--w:47;--h:71" role="img" aria-label="The bandit, turning"><img src="img/art/hero-bandit-turn.png" alt="" width="2256" height="213"><img class="still" src="img/art/hero-bandit.png" alt="" width="141" height="213"></span><b>Bandit</b><span>Knows every door nobody locks. A hood and a scarf, light leathers, a blade in each hand.</span></figure>
+    <figure class="hero-card reveal"><span class="turn" style="--w:47;--h:78" role="img" aria-label="The barbarian, turning"><img src="img/art/hero-barbarian-turn.png" alt="" width="2256" height="234"><img class="still" src="img/art/hero-barbarian.png" alt="" width="141" height="234"></span><b>Barbarian</b><span>Down from the far crags. Big and bare-armed, a horned helm, an axe in each hand.</span></figure>
   </div>
 </section>
 
@@ -257,11 +261,11 @@ ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;he
       <p class="eyebrow">Journeys and the Market</p>
       <h2 id="journeys-h">Send them out. Bring back silver.</h2>
       <p class="lead">Finished tasks pack provisions. Spend them to send your hero across the star chart, to the Hush Garden, the Drowned Mill and the Glass Ruins. They come home with silver and sometimes a small found thing.</p>
-      <ul class="marks"><li>Furnish your rooms at the Market</li><li>Armour, weapons and trinkets that make journeys shorter and richer</li></ul>
+      <ul class="marks"><li>Furnish your rooms at the Market</li><li>Each calling's own armour and weapons, worn on your hero, that make journeys shorter and richer</li></ul>
     </div>
     <div class="phones">
       <div class="phone reveal" style="--tilt:2deg"><img src="img/shots/journeys.jpg" alt="Journeys: a star chart with the keep at the centre and three places on its rings." loading="lazy" width="780" height="1688"></div>
-      <div class="phone reveal"><img src="img/shots/market.jpg" alt="The Market: a pixel knight in a moth-wing cloak with a lantern blade, and armour to buy with silver." loading="lazy" width="780" height="1688"></div>
+      <div class="phone reveal"><img src="img/shots/market.jpg" alt="The Market: the bandit in black leathers with twin shortswords, trying on armour before buying it with silver." loading="lazy" width="780" height="1688"></div>
     </div>
   </div></div>
 </section>

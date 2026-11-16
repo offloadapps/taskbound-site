@@ -11,7 +11,7 @@ The website for Taskbound: a landing page, the privacy policy and the web versio
 | `privacy.html` | Privacy policy (needed for the Play listing). |
 | `app/` | The web version of Taskbound, copied from `offloadapps/taskbound` `dist/web`. |
 | `img/shots/` | Phone screenshots of the app (390 x 844 at 2x). |
-| `img/art/` | The four heroes, drawn by the app's `ART.hero`. |
+| `img/art/` | The four callings: a 16-frame turn (`hero-<calling>-turn.png`) and a still, drawn by the app's own `ART.heroPic` from `app/hero-splat.js` (taskbound `art/hero_splat_scene.js`). |
 | `fonts/` | Jacquard 24 (OFL), subset to Latin, for titles. |
 
 ## Updating the web version
