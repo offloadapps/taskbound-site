@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e050b">
+<title>Taskbound</title>
+<link rel="icon" href="img/icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Home: the Hollow Keep -->
+  <section class="screen" id="s-keep" aria-labelledby="keep-h">
+    <div class="scene" id="keep-scene"></div>
+    <header class="keep-top">
+      <h1 id="keep-h" class="title">The<br>Hollow<br>Keep</h1>
+      <div class="keep-side">
+      <button type="button" class="ghost-btn gear" id="open-settings" aria-label="Settings" data-icon="gear"></button>
+      <ul class="stores" aria-label="Your stores">
+        <li><b id="n-embers">0</b><span class="sr-f"> embers</span><span data-art="ember"></span></li>
+        <li><b id="n-silver">0</b><span class="sr-f"> silver</span><span data-art="silver"></span></li>
+        <li><b id="n-prov">0</b><span class="sr-f"> provisions</span><span data-art="prov"></span></li>
+      </ul>
+      </div>
+    </header>
+    <section class="relight" aria-labelledby="relight-h">
+      <div class="ledge" aria-hidden="true" data-art="ledge"></div>
+      <div class="row-between">
+        <h2 id="relight-h" class="title">The keep remembers</h2>
+        <span class="muted" id="rooms-count"></span>
+      </div>
+      <div class="arches" id="arches"></div>
+      <p class="muted" id="relight-line"></p>
+      <div class="offer" id="offer"></div>
+    </section>
+  </section>
+
+  <!-- Tasks: candles -->
+  <section class="screen" id="s-tasks" aria-labelledby="tasks-h" hidden>
+    <div class="stars" aria-hidden="true" data-art="stars"></div>
+    <header class="page-top">
+      <p class="eyebrow" id="today-date"></p>
+      <div class="title-row"><h1 id="tasks-h" class="title big">Candles</h1><button type="button" class="sm-btn" id="tsel" data-act="select" aria-pressed="false" hidden>Select</button></div>
+      <p class="muted" id="tasks-sub"></p>
+    </header>
+    <form class="quick" id="quick" autocomplete="off">
+      <label for="qa-in" class="sr">Add a task</label>
+      <input id="qa-in" type="text" maxlength="160" enterkeyhint="done" placeholder="Set down a new candle">
+      <button type="submit" aria-label="Add" data-icon="plus"></button>
+    </form>
+    <div class="tsearch" id="tsearch" hidden><label for="task-q" class="sr">Search your candles</label><input id="task-q" type="search" maxlength="60" autocomplete="off" enterkeyhint="search" placeholder="Search your candles"></div>
+    <div class="lists" id="lists" role="group" aria-label="Lists" hidden></div>
+    <div class="thread" id="tasklist"></div>
+    <div class="selbar" id="selbar" role="region" aria-label="Choosing several candles" hidden></div>
+  </section>
+
+  <!-- Journeys: the star chart -->
+  <section class="screen" id="s-journeys" aria-labelledby="journeys-h" hidden>
+    <header class="page-top">
+      <h1 id="journeys-h" class="title big">Journeys</h1>
+      <p class="muted" id="journey-sub"></p>
+    </header>
+    <div class="chart" id="chart"></div>
+    <section class="dest" id="dest" aria-live="polite"></section>
+    <label class="fast" id="fast-wrap" hidden><input type="checkbox" id="fast"> Fast journeys (test build only)</label>
+  </section>
+  <!-- The Market: furnishings for woken rooms, gear for the knight -->
+  <section class="screen" id="s-market" aria-labelledby="market-h" hidden>
+    <header class="page-top">
+      <h1 id="market-h" class="title big">Market</h1>
+      <p class="muted" id="market-sub"></p>
+    </header>
+    <div class="stalls" role="group" aria-label="Stalls">
+      <button type="button" data-stall="keep" aria-pressed="true" aria-label="For the keep"><span class="for">For the </span>keep</button>
+      <button type="button" data-stall="knight" aria-pressed="false" aria-label="For the knight"><span class="for">For the </span><span id="stall-who">knight</span></button>
+    </div>
+    <div class="wares" id="wares" aria-live="polite"></div>
+  </section>
+
+  <nav class="runes" aria-label="Main">
+    <span class="rail" aria-hidden="true"></span>
+    <button type="button" class="rune" data-tab="keep"><span class="dia" data-rune="keep"></span>Keep</button>
+    <button type="button" class="rune" data-tab="tasks"><span class="dia" data-rune="tasks"></span>Tasks</button>
+    <button type="button" class="sigil" id="open-well" aria-label="Offload"><span data-icon="sigil"></span>Offload</button>
+    <button type="button" class="rune" data-tab="journeys"><span class="dia" data-rune="journeys"></span>Journeys<span class="back-dot" id="back-dot" hidden><span class="sr"> (back)</span></span></button>
+    <button type="button" class="rune" data-tab="market"><span class="dia" data-rune="market"></span>Market</button>
+  </nav>
+</div>
+
+<!-- The Well: Offload -->
+<div class="well-sheet" id="well" role="dialog" aria-modal="true" aria-labelledby="well-h" hidden>
+  <div class="motes" aria-hidden="true" data-art="motes"></div>
+  <div class="well-top">
+    <button type="button" class="ghost-btn" id="close-well" aria-label="Close" data-icon="close"></button>
+    <span class="eyebrow">Offload</span>
+    <span class="spacer"></span>
+  </div>
+  <h2 id="well-h" class="title">Cast it into<br>the well</h2>
+  <p class="muted center">Everything on your mind. One thing per line.</p>
+  <div class="well">
+    <label for="well-in" class="sr">Your list</label>
+    <textarea id="well-in" rows="5" spellcheck="true" placeholder="reply to sam&#10;bins out friday 6pm&#10;did the washing up"></textarea>
+  </div>
+  <p class="eyebrow center" id="rose-h" hidden>What rose back up</p>
+  <ul class="stones" id="well-preview" aria-live="polite"></ul>
+  <p class="fine center" id="well-note" hidden>Only the first 50 lines are added.</p>
+  <p class="fine center" id="well-voice-tip" hidden>Speaking? Just list your tasks, or say "next" between them.</p>
+  <div class="spacer-grow"></div>
+  <div class="well-actions">
+    <button type="button" class="ghost-btn tall" id="well-speak" aria-label="Speak your list" data-icon="mic" hidden></button>
+    <button type="button" class="ember-btn tall" id="well-go" disabled>Cast it in</button>
+  </div>
+</div>
+
+<!-- Editing a candle (Pawgress's task sheet, in the Hollow Keep look) -->
+<div class="edit-sheet" id="edit" role="dialog" aria-modal="true" aria-labelledby="edit-h" hidden>
+  <form id="edit-form" class="edit-card" autocomplete="off" novalidate>
+    <div class="well-top">
+      <button type="button" class="ghost-btn" data-edit="close" aria-label="Close without saving" data-icon="close"></button>
+      <span class="eyebrow">A candle</span>
+      <span class="spacer"></span>
+    </div>
+    <h2 id="edit-h" class="title">Change this candle</h2>
+    <div class="field">
+      <label for="ed-text" class="lbl">What needs doing?</label>
+      <input id="ed-text" class="input" type="text" maxlength="160" spellcheck="true">
+    </div>
+    <fieldset class="field sizes" id="ed-sizes"><legend class="lbl">How big is it?</legend><div class="size-row" id="ed-size-row"></div><p class="fine" id="ed-size-hint"></p></fieldset>
+    <div class="field">
+      <label for="ed-due" class="lbl">Day</label>
+      <input id="ed-due" class="input" type="date">
+      <p class="fine">Leave it empty and it waits on the list, any day.</p>
+    </div>
+    <details class="more" id="ed-more"><summary>More: list, steps, repeats, reminder, notes</summary>
+      <div class="more-body">
+        <div class="field"><label for="ed-list" class="lbl">List</label><select id="ed-list" class="input"></select>
+          <div id="ed-list-new" hidden><label for="ed-list-name" class="sr">New list name</label><input id="ed-list-name" class="input" type="text" maxlength="20" autocomplete="off" placeholder="Name the new list"></div></div>
+        <div class="two">
+          <div class="field"><label for="ed-rep" class="lbl">Repeats</label>
+            <select id="ed-rep" class="input"><option value="none">Just once</option><option value="daily">Every day</option><option value="weekdays">Weekdays</option><option value="weekends">Weekends</option><option value="custom">Choose days</option><option value="fortnight">Every 2 weeks</option><option value="monthly">Every month</option></select></div>
+          <div class="field"><label for="ed-when" class="lbl">Time of day</label>
+            <select id="ed-when" class="input"><option value="any">Any time</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select></div>
+        </div>
+        <fieldset class="field" id="ed-days" hidden><legend class="lbl">Which days?</legend><div class="daygrid" id="ed-daygrid"></div></fieldset>
+        <div class="field" id="ed-start-wrap" hidden><label for="ed-start" class="lbl">Starting</label><select id="ed-start" class="input"></select></div>
+        <div class="field" id="ed-dom-wrap" hidden><label for="ed-dom" class="lbl">On the</label><select id="ed-dom" class="input"></select><p class="fine">Shorter months use their last day.</p></div>
+        <div class="two">
+          <div class="field"><label for="ed-remind" class="lbl">Reminder</label><input id="ed-remind" class="input" type="time"></div>
+          <div class="field"><label for="ed-rmin" class="lbl">How early</label>
+            <select id="ed-rmin" class="input"><option value="0">At that time</option><option value="10">10 min before</option><option value="30">30 min before</option><option value="60">1 hour before</option><option value="120">2 hours before</option><option value="1440">1 day before</option></select></div>
+        </div>
+        <div class="field">
+          <label for="ed-steps" class="lbl">Steps</label>
+          <textarea id="ed-steps" class="input" rows="3" maxlength="500" placeholder="Pick up the bin&#10;Tie the bag&#10;Carry it out"></textarea>
+          <p class="fine">One step per line, up to 8.</p>
+        </div>
+        <div class="field">
+          <label for="ed-note" class="lbl">Notes</label>
+          <textarea id="ed-note" class="input" rows="3" maxlength="500" placeholder="Anything worth remembering. Links work."></textarea>
+        </div>
+        <label class="tick" id="ed-later-wrap"><input id="ed-later" type="checkbox"> <span>Keep for later<span class="fine">No day yet, and no reminder.</span></span></label>
+      </div>
+    </details>
+    <div class="edit-actions">
+      <button type="submit" class="ember-btn tall">Save changes</button>
+      <button type="button" class="ghost-btn tall wide" data-edit="close">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- A room you can enter: its painting, how it is coming back, and what is in place (game-loop.md) -->
+<div class="room-sheet" id="room" role="dialog" aria-modal="true" aria-labelledby="room-h" hidden>
+  <div class="room-scene" id="room-scene"></div>
+  <div class="room-top">
+    <button type="button" class="room-back" id="close-room" data-icon="back"><span id="room-back-l">The keep</span></button>
+    <span class="purse"><b id="room-silver">0</b> silver</span>
+  </div>
+  <section class="room-body">
+    <h1 id="room-h" class="title"></h1>
+    <p class="room-line" id="room-line"></p>
+    <ol class="stages" id="room-stages" aria-label="How the room is coming back"></ol>
+    <h2 class="eyebrow room-count" id="room-count"></h2>
+    <ul class="in-room" id="room-list"></ul>
+    <div class="room-end" id="room-end"></div>
+  </section>
+</div>
+
+<!-- Settings: a full-screen sheet in the candles' night colours -->
+<div class="edit-sheet" id="settings" role="dialog" aria-modal="true" aria-labelledby="settings-h" hidden>
+  <div class="edit-card">
+    <div class="well-top">
+      <button type="button" class="ghost-btn" id="close-settings" aria-label="Close" data-icon="close"></button>
+      <span class="eyebrow">The keep's ways</span>
+      <span class="spacer"></span>
+    </div>
+    <h2 id="settings-h" class="title">Settings</h2>
+    <div id="set-body" class="set-body"></div>
+  </div>
+</div>
+
+<!-- The first start: welcome, three small rites, and choosing who you are (game-loop.md) -->
+<div class="first-sheet" id="first" role="dialog" aria-modal="true" aria-labelledby="first-h" hidden>
+  <div id="first-body" class="first-body"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="tasks-core.js"></script>
+<script src="keep-splat.js"></script>
+<script src="art.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

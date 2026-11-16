@@ -1,0 +1,56 @@
+/* Shared styles for the Taskbound website (landing page and privacy policy). The Hollow Keep look from the app
+   (app/style.css): always night, bone text, ember for the one main action, gilt frames with pointed ends, cut corners.
+   Titles in Jacquard 24, everything else in Atkinson Hyperlegible. */
+@font-face{font-family:'Jacquard 24';src:url(fonts/Jacquard24.woff) format('woff');font-weight:400;font-display:swap}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(app/fonts/AtkinsonHyperlegible-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(app/fonts/AtkinsonHyperlegible-Bold.ttf) format('truetype');font-weight:700;font-display:swap}
+:root{
+  --void:#0e050b;--night:#0d0710;--panel:#1a0a14;--line:#2a1530;--edge:#6b2a3a;--wine:#5e2232;
+  --bone:#ecdcbc;--muted:#c9b6ae;--ember:#f0a35a;--ember-hot:#ffd27a;--ember-ink:#1f0a06;--teal:#7fd6c2;--violet:#3a2448;
+  --veil:rgba(10,4,9,.78);--veil-soft:rgba(10,4,9,.55);
+  --gilt:linear-gradient(180deg,#fff1c4 0%,#e6c27a 22%,#9c6f2c 50%,#f0d08e 74%,#7a5420 100%);
+  --gilt-diag:linear-gradient(135deg,#fff1c4 0%,#e6c27a 25%,#8c6226 50%,#f0d08e 75%,#6e4a1a 100%);
+  --silver:linear-gradient(180deg,#f4f0fa 0%,#b4aec4 24%,#5c566c 52%,#d2ccdf 76%,#4a4458 100%);
+  --fill-ember:radial-gradient(ellipse 70% 90% at 50% 50%,#a8401f 0%,#86281a 40%,#4a1210 72%,#1e0608 100%);
+  --fill-violet:linear-gradient(180deg,#4a2a62 0%,#2c1840 45%,#1a0c28 55%,#2a1640 100%);
+  --fill-iron:linear-gradient(180deg,#2c2836 0%,#18151f 50%,#100e16 52%,#1c1924 100%);
+  --ink-gilt:#f2d48e;--ink-ember:#ffe0a0;--ink-silver:#d6d0e2;
+  --cut:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  --point:polygon(16px 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,16px 100%,0 50%);
+  --f-display:'Jacquard 24',Georgia,'Times New Roman',serif;
+  --f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--void)}
+body{margin:0;background:var(--void);color:var(--bone);font:18px/1.6 var(--f-body)}
+a{color:var(--ink-gilt);font-weight:700;text-underline-offset:3px}
+a:focus-visible,.fbtn:focus-visible{outline:2px solid var(--ember);outline-offset:4px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:.95;margin:0;text-wrap:balance;letter-spacing:.5px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.eyebrow{margin:0;font:700 .8rem var(--f-body);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+
+/* the brand: the app's own icon, pixelated, and the name in blackletter */
+.brand{display:inline-flex;align-items:center;gap:12px;text-decoration:none;color:var(--bone);font:400 2rem/1 var(--f-display)}
+.brand img{width:36px;height:36px;image-rendering:pixelated;clip-path:var(--cut);flex:none}
+
+/* framed buttons: a gilt frame with pointed ends and a small diamond on each tip, a deep fill, small gilded capitals */
+.fbtn{position:relative;display:inline-flex;min-height:52px;padding:0 9px;text-decoration:none;font:700 .92rem/1 var(--f-body);letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-ember);-webkit-tap-highlight-color:transparent;transition:transform .2s,filter .2s}
+.fbtn .fr{display:flex;flex:1;padding:2.5px;background:var(--gilt);clip-path:var(--point)}
+.fbtn .fl{display:flex;align-items:center;justify-content:center;gap:10px;flex:1;padding:16px 34px;background:var(--fill-ember);clip-path:var(--point);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2);text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.fbtn::before,.fbtn::after{content:"";position:absolute;top:50%;width:9px;height:9px;margin-top:-4.5px;background:var(--gilt-diag);transform:rotate(45deg)}
+.fbtn::before{left:0}.fbtn::after{right:0}
+.fbtn:hover{filter:brightness(1.12) drop-shadow(0 0 14px rgba(240,140,70,.45))}
+.fbtn:active{transform:translateY(1px)}
+.fbtn.violet{color:var(--ink-gilt)}.fbtn.violet .fl{background:var(--fill-violet)}
+.fbtn.iron{color:var(--ink-silver);cursor:default}.fbtn.iron .fr,.fbtn.iron::before,.fbtn.iron::after{background:var(--silver)}.fbtn.iron .fl{background:var(--fill-iron)}
+.fbtn.iron:hover{filter:none}
+.fbtn.small{min-height:40px;font-size:.78rem}.fbtn.small .fl{padding:10px 22px}
+.fbtn svg{width:18px;height:18px;flex:none}
+
+.panel{background:var(--veil);border:1px solid var(--line);clip-path:var(--cut);padding:24px}
+
+footer.foot{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;align-items:center;color:var(--muted);font-size:.95rem}
+footer.foot nav{display:flex;gap:20px;flex-wrap:wrap}

@@ -1,0 +1,485 @@
+/* Taskbound: the Hollow Keep look. Always night. Every colour is a token here; the rules are in docs/decisions/look.md. */
+:root {
+  /* Shared: the keep at night */
+  --void: #0e050b; --night: #0d0710; --panel: #1a0a14; --line: #2a1530; --edge: #6b2a3a; --wine: #5e2232; --ash: #2a0f1a;
+  --bone: #ecdcbc; --muted: #c9b6ae; --ember: #f0a35a; --ember-ink: #1f0a06; --teal: #7fd6c2; --shadow: #05030a;
+  /* Candles and the edit sheet: violet night */
+  --thread: #4a2a5a; --field: #140a18; --hint: #9d8a99; --edge-soft: #3a2448; --chosen: #2a1220; --hollow: #120914;
+  /* Journeys: indigo sky */
+  --sky: #09071a; --sky-panel: #13102a; --sky-edge: #3a3470; --sky-muted: #c2bde0; --sky-track: #2a2550;
+  /* The Market: plum */
+  --market: #140812; --market-edge: #3a1a2a; --hush: #3a1a2a;
+  /* A room you can enter: stages not reached yet, and furnishings not in place */
+  --room-off: #3a2448; --room-off-in: #120914; --room-past-in: #3a2050; --room-dim: #9d8a99; --room-hollow: #6b4a5a;
+  --flame-deep: #b8602e; --ember-glow: rgba(240, 163, 90, .5);
+  /* The Well: deep teal */
+  --well: #070a12; --well-bowl: #0b1622; --well-ring: #2b4f5a; --well-ring-in: #1c3a44; --well-ring-out: #1f3540;
+  --well-edge: #2a3a4a; --well-stone: #1b2a33; --well-muted: #a9bcc4; --well-hint: #5f7a84;
+  /* The first start: the keep's night, and the cards for who you are */
+  --first: #0e050b; --first-sky: radial-gradient(ellipse 90% 60% at 50% 0%, #2a1236 0%, #160a1c 55%, #0e050b 100%);
+  --first-fade: linear-gradient(180deg, rgba(14, 5, 11, 0) 0%, rgba(14, 5, 11, .86) 36%, #0e050b 60%);
+  --first-lead: #e2d0b4; --first-text: #d2c0a6; --rite-bg: #1a0c1c; --rite-edge: #4a2a44; --calm-bg: rgba(26, 12, 28, .7); --calm-edge: #3a2238;
+  --step-off: #2a1626; --step-on-edge: #ffd27a; --step-off-edge: #6b4a5a; --step-glow: rgba(240, 163, 90, .6);
+  --card-edge: linear-gradient(180deg, #6b4a5a 0%, #3a2238 100%); --card-fill: linear-gradient(180deg, #1e0e20 0%, #140812 100%);
+  --card-fill-on: radial-gradient(ellipse 80% 70% at 50% 38%, #4a1c1a 0%, #24101a 60%, #160a14 100%); --card-name-on: #ffd9a0;
+  --card-glow: rgba(240, 140, 70, .45); --card-shadow: rgba(0, 0, 0, .5);
+  /* The toast is bone paper */
+  --toast-ink: #2a1a14;
+  /* Framed buttons and runes: gilt and silver, never flat (look.md) */
+  --gilt: linear-gradient(180deg, #fff1c4 0%, #e6c27a 22%, #9c6f2c 50%, #f0d08e 74%, #7a5420 100%);
+  --gilt-dim: linear-gradient(180deg, #e8cf95 0%, #b8904c 25%, #6e4c1e 52%, #c8a462 76%, #5a3c16 100%);
+  --gilt-diag: linear-gradient(135deg, #fff1c4 0%, #e6c27a 25%, #8c6226 50%, #f0d08e 75%, #6e4a1a 100%);
+  --gilt-dim-diag: linear-gradient(135deg, #e0c48a 0%, #a8834a 30%, #5a3e18 52%, #b8944e 78%, #4a3214 100%);
+  --silver: linear-gradient(180deg, #f4f0fa 0%, #b4aec4 24%, #5c566c 52%, #d2ccdf 76%, #4a4458 100%);
+  --fill-ember: radial-gradient(ellipse 70% 90% at 50% 50%, #a8401f 0%, #86281a 40%, #4a1210 72%, #1e0608 100%);
+  --fill-violet: linear-gradient(180deg, #4a2a62 0%, #2c1840 45%, #1a0c28 55%, #2a1640 100%);
+  --fill-iron: linear-gradient(180deg, #2c2836 0%, #18151f 50%, #100e16 52%, #1c1924 100%);
+  --fill-rune: radial-gradient(circle at 50% 40%, #3a2050 0%, #1e0e2a 60%, #120818 100%);
+  --fill-rune-lit: radial-gradient(circle at 50% 50%, #ffcf8a 0%, #f0a35a 45%, #b8602e 100%);
+  --sheen: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 50%);
+  --gilt-solid: #c8a462; --gilt-bright: #e6c27a; --gilt-pale: #fff1c4; --gilt-deep: #6e4c1e; --gilt-dark: #7a5420;
+  --ink-gilt: #f2d48e; --ink-ember: #ffe0a0; --ink-silver: #d6d0e2; --gap: #07030a;
+  /* Shapes */
+  --cut-sm: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  --cut: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  /* A framed button: pointed ends with a diamond on each tip (outer), and the inner frame inside it */
+  --point: polygon(0 50%, 4px calc(50% - 4px), 5.9px calc(50% - 2.1px), 15px 0, calc(100% - 15px) 0, calc(100% - 5.9px) calc(50% - 2.1px), calc(100% - 4px) calc(50% - 4px), 100% 50%, calc(100% - 4px) calc(50% + 4px), calc(100% - 5.9px) calc(50% + 2.1px), calc(100% - 15px) 100%, 15px 100%, 5.9px calc(50% + 2.1px), 4px calc(50% + 4px));
+  --point-in: polygon(9.5px 0, calc(100% - 9.5px) 0, 100% 50%, calc(100% - 9.5px) 100%, 9.5px 100%, 0 50%);
+  /* A small framed button: one gilt line, pointed ends, no diamonds; drawn 30px tall inside a 44px tap area */
+  --point-sm: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+  --point-sm-in: polygon(7.4px 0, calc(100% - 7.4px) 0, 100% 50%, calc(100% - 7.4px) 100%, 7.4px 100%, 0 50%);
+  --nav-h: 104px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+html, body { margin: 0; height: 100%; background: var(--void); color: var(--bone) }
+body { font: 16px/1.4 'Atkinson Hyperlegible', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden }
+button, input, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+[hidden] { display: none !important }
+.title { font-family: 'Jacquard 24', 'Georgia', serif; font-weight: 400; margin: 0; line-height: .95; letter-spacing: .5px }
+.title.big { font-size: 52px }
+.eyebrow { margin: 0; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted) }
+.muted { color: var(--muted); margin: 0 }
+.center { text-align: center }
+.row-between { display: flex; justify-content: space-between; align-items: baseline; gap: 12px }
+.spacer { width: 44px }
+.spacer-grow { flex: 1 }
+
+#app { position: relative; height: 100%; max-width: 520px; margin: 0 auto; overflow: hidden }
+.screen { position: absolute; inset: 0 0 var(--nav-h) 0; overflow-y: auto; overscroll-behavior: contain }
+
+/* Home: the keep */
+#s-keep { overflow: hidden; bottom: 0 }
+.scene { position: absolute; inset: 0; bottom: 0 }
+.scene svg { width: 100%; height: 100%; display: block }
+.keep3d { display: block; image-rendering: pixelated; touch-action: none; cursor: grab }
+.keep3d:active { cursor: grabbing }
+.keep-top { pointer-events: none }
+.keep-top > * { pointer-events: auto }
+.keep-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: calc(22px + env(safe-area-inset-top)) 20px 0 }
+.keep-top .title { font-size: 34px; text-shadow: 0 2px 0 var(--void) }
+.stores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch }
+/* Stores on home: just the number and its sign, centred in pills of one width, so they cover little of the keep */
+.stores li { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 64px; height: 28px; padding: 0 8px; background: var(--void); border: 1px solid var(--wine) }
+.stores b { font-size: 14px; line-height: 1; color: var(--bone); font-variant-numeric: tabular-nums }
+.stores [data-art] { width: 14px; height: 16px; flex: none; display: flex; align-items: center; justify-content: center }
+.stores [data-art] svg { display: block }
+.relight { position: absolute; left: 0; right: 0; bottom: var(--nav-h); background: var(--void); padding: 6px 20px 14px; display: flex; flex-direction: column; gap: 12px }
+.ledge { position: absolute; left: 0; right: 0; top: -19px; height: 20px }
+.ledge svg { width: 100%; height: 100%; display: block }
+.relight .title { font-size: 30px }
+.relight .row-between .muted { white-space: nowrap; font-size: 13px }
+.arches { display: flex; gap: 0; margin: 0 -12px }
+.offer { display: flex; gap: 8px }
+.offer button { flex: 1; height: 46px; padding: 0 14px }
+.offer button.main { flex: 1.4 }
+
+/* Tasks: candles */
+#s-tasks { background: var(--night) }
+.stars { position: absolute; inset: 0; pointer-events: none }
+.stars svg { width: 100%; height: 100%; display: block }
+.page-top { position: relative; padding: calc(26px + env(safe-area-inset-top)) 20px 8px }
+.page-top .muted { margin-top: 6px; font-size: 15px }
+.quick { position: relative; margin: 8px 20px 0; display: flex; border: 1px solid var(--thread); background: var(--field) }
+.quick input { flex: 1; min-width: 0; height: 48px; padding: 0 14px; border: 0; background: transparent; font-size: 16px }
+.quick input::placeholder { color: var(--hint) }
+.quick button { width: 48px; height: 48px; border: 0; border-left: 1px solid var(--thread); background: var(--ember); color: var(--ember-ink); display: flex; align-items: center; justify-content: center }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap }
+.title-row .sm-btn { flex: none }
+/* Search: a quiet field under quick add, once there are 6 candles */
+.tsearch { position: relative; margin: 8px 20px 0 }
+.tsearch input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--edge-soft); background: var(--hollow); font-size: 16px; clip-path: var(--cut) }
+.tsearch input::placeholder { color: var(--hint) }
+.tsearch input:focus-visible { outline-offset: -3px }
+/* Select several: a box on the thread instead of the candle, and a bar of tools kept in view under the candles */
+#tasklist .task.pick .wick { opacity: 1; align-items: center; min-height: 52px; padding: 0 }
+.pickbox { position: relative; width: 22px; height: 22px; border: 1.5px solid var(--hint); background: var(--field); clip-path: var(--cut-sm) }
+.task.picked .pickbox { border-color: var(--ember); background: var(--chosen) }
+.task.picked .pickbox::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; background: var(--ember); transform: translate(-50%, -50%) rotate(45deg) }
+.task.picked .name { color: var(--ember) }
+.task.pick .linkish { cursor: pointer }
+.selbar { position: sticky; bottom: 0; z-index: 3; margin: 0 12px; padding: 8px 10px 4px; background: var(--panel); border: 1px solid var(--edge-soft); clip-path: var(--cut) }
+.sel-n { margin: 0 4px 2px; font-size: 14px; font-weight: 700 }
+.sel-acts { display: flex; flex-wrap: wrap; gap: 0 6px }
+#s-tasks.selecting .thread { margin-bottom: 12px }
+.thread { position: relative; margin: 16px 20px 24px; padding: 0 }
+.thread::before { content: ''; position: absolute; left: 21px; top: 0; bottom: 0; width: 1px; background: var(--thread) }
+.thread ul { list-style: none; margin: 0; padding: 0 }
+.task { position: relative; display: flex; align-items: flex-end; gap: 14px; padding: 6px 0 }
+.task .wick { width: 44px; min-height: 52px; flex: none; border: 0; background: transparent; display: flex; align-items: flex-end; justify-content: center; padding: 0 0 2px }
+.task .body { flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line) }
+.task .name { display: block; font-size: 17px; font-weight: 700; overflow-wrap: anywhere }
+.task .meta { font-size: 13px; color: var(--muted) }
+.task .earn { font-size: 13px; color: var(--muted); text-align: right; flex: 0 1 auto; max-width: 42% }
+.task .linkish { flex: 1; min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; min-height: 44px; display: flex; flex-direction: column; justify-content: flex-end }
+.task-tools { display: flex; gap: 0 6px; flex-wrap: wrap; padding: 0 0 6px 54px }
+#relight-line b { color: var(--bone) }
+.linkbtn { min-height: 44px; padding: 0 2px; border: 0; background: transparent; color: var(--ember); text-decoration: underline; font-size: inherit }
+.note.remind-off { padding-top: 0; padding-bottom: 8px }
+.note.remind-off .linkbtn { display: block; min-height: 40px }
+.task.lit .wick { filter: drop-shadow(0 0 8px rgba(240,163,90,.7)) }
+.task.lit .name { font-weight: 400; color: var(--muted) }
+.task.lit .earn { color: var(--ember) }
+.task.lit .body { border-bottom: 0 }
+.task.waiting .wick { opacity: .45 }
+.task.waiting .name { font-weight: 400 }
+/* Lists: chips under quick add (Pawgress's), shown once a list exists. The picked one glows ember. */
+.lists { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 20px 0 }
+.lchip { min-height: 44px; min-width: 44px; padding: 0 14px; border: 1px solid var(--thread); background: var(--field); color: var(--bone); font-size: 14px; clip-path: var(--cut); display: inline-flex; align-items: center; justify-content: center }
+.lchip[aria-pressed="true"] { border-color: var(--ember); background: var(--chosen); color: var(--ember) }
+.lchip.add { color: var(--ember); padding: 0 }
+.lnew { display: flex; gap: 6px; align-items: center }
+.lists .lnew .input { width: 150px; min-height: 44px }
+/* Reordering: the grip drags; Move up / Move down show only when focused by keyboard */
+.task .grip { flex: none; align-self: center; width: 30px; height: 44px; margin-left: -6px; border: 0; background: transparent; color: var(--hint); display: flex; align-items: center; justify-content: center; touch-action: none; cursor: grab }
+.task.dragging { z-index: 2; background: var(--panel); box-shadow: 0 6px 18px var(--shadow) }
+.task.dragging .grip { color: var(--ember); cursor: grabbing }
+.sr-f { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0 }
+.sr-f:focus { position: static; width: auto; height: 44px; clip: auto; padding: 0 10px; border: 1px solid var(--ember); background: var(--field); color: var(--bone); font-size: 13px; flex: none; align-self: center }
+.task-note { padding: 0 0 10px 58px; font-size: 14px; color: var(--muted); overflow-wrap: anywhere }
+.task-note a { color: var(--ember) }
+.fold { min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; display: inline-flex; align-items: center; gap: 8px }
+.fold::after { content: ''; width: 7px; height: 7px; border: solid var(--ember); border-width: 0 2px 2px 0; transform: rotate(-45deg) }
+.fold[aria-expanded="true"]::after { transform: rotate(45deg) }
+.tipbtns { display: flex; gap: 14px }
+.group-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px }
+/* Tidy candles: a quiet italic ember link, no frame (developer chose this, 9 Nov 2026); the tap area stays 44px */
+.tidy-link { flex: none; min-height: 44px; margin-bottom: -6px; padding: 0 4px; border: 0; background: transparent; color: var(--ember); font-size: 14px; font-style: italic;
+  text-decoration: underline dotted; text-underline-offset: 4px }
+.tidy-link:focus-visible { outline: 1px solid var(--ember); outline-offset: 2px }
+.group-h { position: relative; padding: 18px 0 4px 58px; margin: 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 400 }
+.empty { padding: 16px 0 0 58px; color: var(--muted) }
+.note { padding: 14px 0 0 58px; color: var(--muted); font-size: 14px }
+
+/* Journeys: the star chart */
+#s-journeys { background: var(--sky) }
+.chart { position: relative; margin: 8px auto 0; width: min(358px, calc(100% - 32px)); aspect-ratio: 1 }
+.chart svg { display: block; width: 100%; height: 100% }
+.chart .place { position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px; border: 0; border-radius: 50%; background: transparent }
+.chart .place:disabled { cursor: default }
+.dest { margin: 12px 16px 24px; padding: 16px; background: var(--sky-panel); border: 1px solid var(--sky-edge); display: flex; flex-direction: column; gap: 10px }
+.dest .title { font-size: 30px }
+.dest .eyebrow { white-space: nowrap }
+.dest .muted { color: var(--sky-muted) }
+.dest .muted.small { font-size: 13px }
+.dest b { color: var(--bone) }
+.dest .ember { color: var(--ember) }
+.dest-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px }
+.dest-row .ember-btn { flex: none; height: 46px; padding: 0 22px }
+.bar { height: 8px; background: var(--sky-track) }
+.bar span { display: block; height: 100%; background: var(--ember) }
+.fast { display: flex; align-items: center; gap: 8px; margin: 0 20px 24px; min-height: 44px; font-size: 14px; color: var(--muted) }
+.fast input { width: 20px; height: 20px; accent-color: var(--ember) }
+.rune { position: relative }
+.back-dot { position: absolute; top: 2px; right: 10px; width: 10px; height: 10px; background: var(--ember); transform: rotate(45deg); box-shadow: 0 0 8px var(--ember) }
+
+/* The Market */
+#s-market { background: var(--market) }
+.stalls { display: flex; gap: 8px; margin: 12px 20px 0 }
+.stalls button { flex: 1; min-height: 44px; padding: 0 16px; white-space: nowrap }
+.wares { margin: 0 20px 24px }
+.wares ul { list-style: none; margin: 0; padding: 0 }
+.ware-h { display: flex; align-items: center; gap: 10px; padding: 16px 0 4px }
+.ware-h h2 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 }
+.ware-h svg { width: 18px; height: 26px; flex: none }
+.ware { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.ware > div { flex: 1; min-width: 0 }
+.ware .name { display: block; font-size: 16px; font-weight: 700; overflow-wrap: anywhere }
+.ware .meta { font-size: 13px; color: var(--muted) }
+.buy { flex: none; min-width: 120px; min-height: 44px; padding: 0 20px }
+.have { flex: none; min-width: 108px; text-align: center; font-size: 14px; color: var(--ember) }
+.sleeping { margin: 18px 0 0; padding: 14px; border: 1px dashed var(--market-edge); font-size: 14px; color: var(--muted) }
+.worn { margin-top: 14px; padding: 14px; background: var(--panel); border: 1px solid var(--market-edge); display: flex; gap: 14px; align-items: center }
+.worn .knight { flex: none; line-height: 0 }
+.worn > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px }
+.worn .ember { margin-top: 4px; color: var(--ember) }
+
+/* Navigation: runes around the Offload sigil */
+.runes { position: absolute; isolation: isolate; left: 0; right: 0; bottom: 0; height: var(--nav-h); padding-bottom: env(safe-area-inset-bottom); display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--void); border-top: 1px solid var(--ash); z-index: 2 }
+.rune { width: 62px; padding: 6px 0; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 1px 0 #000 }
+/* Pixel runes (look.md): a 19-pixel diamond drawn x3, inside a 25-pixel sprite so the current one has room to glow */
+.rune .dia { position: relative; width: 57px; height: 57px; flex: none }
+.rune .dia > span { position: absolute; left: -9px; top: -9px; line-height: 0; pointer-events: none }
+.rune .px-lit, .rune[aria-current="page"] .px-rest { display: none }
+.rune[aria-current="page"] .px-lit { display: block }
+.rune[aria-current="page"] { color: var(--gilt-pale); font-weight: 700 }
+/* The studded rail the runes are strung on; app.js draws it to the bar's width, through the runes' middles */
+.rail { position: absolute; z-index: -1; left: 10px; top: 0; line-height: 0; pointer-events: none }
+/* The Offload sigil: a pixel well mouth, raised a little, its name in the Well's teal level with the runes' names */
+.sigil { width: 84px; margin: 0 2px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; top: -7px; color: var(--teal); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 1px 0 #000 }
+.sigil svg { display: block }
+
+/* The Well */
+.well-sheet { position: fixed; inset: 0; z-index: 5; background: var(--well); display: flex; flex-direction: column; align-items: center; padding: calc(18px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)); overflow-y: auto }
+.well-sheet > * { position: relative; max-width: 480px }
+.motes { position: absolute !important; inset: 0; pointer-events: none; max-width: none !important }
+.motes svg { width: 100%; height: 100%; display: block }
+.well-top { align-self: stretch; display: flex; justify-content: space-between; align-items: center; margin: 0 auto; width: 100% }
+.ghost-btn { width: 44px; height: 44px; border: 1px solid var(--well-edge); background: transparent; display: flex; align-items: center; justify-content: center; color: var(--bone) }
+.ghost-btn.tall { width: 54px; height: 54px; color: var(--teal); border-color: var(--well-ring) }
+.well-sheet h2 { font-size: 40px; text-align: center; margin-top: 14px }
+.well-sheet > .muted { margin-top: 8px; font-size: 15px; color: var(--well-muted) }
+/* The Well: an old stone well seen from above, painted in pixels (art/night.py), drawn with no smoothing */
+.well { margin-top: 18px; flex: none; width: min(300px, 78vw); aspect-ratio: 1; border-radius: 50%; background: url(img/well.png) center / 100% 100% no-repeat; image-rendering: pixelated; display: flex; align-items: center; justify-content: center }
+.well textarea { width: 72%; height: 58%; resize: none; border: 0; background: transparent; text-align: center; font-size: 16px; line-height: 1.7 }
+.well textarea::placeholder { color: var(--well-hint) }
+.well textarea:focus-visible { outline: none }
+.well:focus-within { box-shadow: 0 0 0 3px var(--teal) }
+#rose-h { margin: 34px 0 10px }
+.stones { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px }
+.stones li { display: flex; align-items: center; max-width: 100%; min-height: 44px; padding: 0 0 0 14px; background: var(--well-stone); font-size: 14px; font-weight: 700; clip-path: polygon(6px 0, 100% 2px, calc(100% - 3px) 100%, 0 calc(100% - 4px)) }
+.stones li:nth-child(even) { transform: rotate(1.5deg); clip-path: polygon(0 3px, calc(100% - 5px) 0, 100% 100%, 4px calc(100% - 2px)) }
+.stones li:nth-child(odd) { transform: rotate(-1.5deg) }
+.stones li span { font-weight: 400; color: var(--well-muted) }
+.stones li.done { background: var(--ember); color: var(--ember-ink) }
+.stones li.done span { color: var(--ember-ink) }
+/* A stone's own controls: the × takes its lines out of the well; the diamond says whether a done line is done. 44px tall. */
+.st-t { min-width: 0; overflow-wrap: anywhere; padding: 9px 0 }
+.st-x, .st-d { flex: none; width: 40px; height: 44px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--well-muted) }
+.st-x svg { width: 14px; height: 14px }
+.stones li.done .st-x, .stones li.done .st-d { color: var(--ember-ink) }
+.st-d { width: 34px; margin-left: -10px }
+.st-d::before { content: ''; width: 11px; height: 11px; transform: rotate(45deg); border: 2px solid currentColor }
+.st-d[aria-pressed="true"]::before { background: currentColor }
+.st-x:focus-visible, .st-d:focus-visible { outline: 2px solid var(--teal); outline-offset: -4px }
+.stones li.dim { opacity: .55 }
+#well-note, #well-voice-tip { margin-top: 10px; color: var(--well-muted) }
+.well-actions { align-self: stretch; display: flex; gap: 10px; margin: 18px auto 0; width: 100% }
+.ember-btn { flex: 1; font-size: 14px }
+.ember-btn.tall { height: 54px }
+
+/* Toast */
+.toast { position: absolute; left: 16px; right: 16px; bottom: calc(var(--nav-h) + 12px); z-index: 6; max-width: 488px; margin: 0 auto; padding: 12px 14px; background: var(--bone); color: var(--toast-ink); display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 0 var(--shadow); clip-path: var(--cut) }
+.toast p { margin: 0; flex: 1 }
+.toast button { min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: var(--wine); font-weight: 700; text-decoration: underline }
+
+@media (max-width: 359px) {
+  .rune { width: 54px; letter-spacing: .5px; font-size: 10px }
+  .sigil { width: 76px; margin: 0 }
+  .relight .title { font-size: 26px }
+  .stalls { gap: 4px }
+  .stalls button { letter-spacing: .3px; font-size: 11px; padding: 0 12px }
+  .stalls .for { display: none } /* the stalls read Keep and the class name; the full words stay in aria-label */
+}
+@media (prefers-reduced-motion: no-preference) {
+  .task.just .wick { animation: kindle .6s ease-out }
+  @keyframes kindle { from { filter: drop-shadow(0 0 0 rgba(240,163,90,0)) brightness(1.8) } to { filter: drop-shadow(0 0 8px rgba(240,163,90,.7)) } }
+}
+
+/* Editing a candle: a full-screen sheet, like the Well, in the candles' night colours */
+.edit-sheet { position: fixed; inset: 0; z-index: 5; background: var(--night); overflow-y: auto; overscroll-behavior: contain; padding: calc(18px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)) }
+.edit-card { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px }
+.edit-card .ghost-btn { border-color: var(--edge-soft) }
+.edit-card h2 { font-size: 38px; margin-top: 4px }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; border: 0; padding: 0; margin: 0 }
+.lbl { font-size: 14px; font-weight: 700; color: var(--bone); padding: 0 }
+.fine { margin: 0; font-size: 13px; color: var(--muted) }
+.input { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--thread); background: var(--field); color: var(--bone); font-size: 16px; border-radius: 0 }
+textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical }
+select.input { appearance: none; padding-right: 32px; background-image: linear-gradient(45deg, transparent 50%, var(--ember) 50%), linear-gradient(135deg, var(--ember) 50%, transparent 50%); background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px; background-size: 5px 5px; background-repeat: no-repeat }
+.input::placeholder { color: var(--hint) }
+.input:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px }
+input[type="date"].input, input[type="time"].input { color-scheme: dark }
+.size-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+.size-row label { display: flex }
+.size-row .opt { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-height: 84px; padding: 8px 2px; border: 1px solid var(--thread); background: var(--field); clip-path: var(--cut); cursor: pointer }
+.size-row .opt b { font-size: 14px; white-space: nowrap }
+.size-row .mini { line-height: 0; opacity: .7 }
+.size-row input:checked + .opt { border-color: var(--ember); background: var(--chosen) }
+.size-row input:checked + .opt b { color: var(--ember) }
+.size-row input:checked + .opt .mini { opacity: 1; filter: drop-shadow(0 0 6px rgba(240,163,90,.6)) }
+.size-row input:focus-visible + .opt, .daygrid input:focus-visible + span { outline: 2px solid var(--ember); outline-offset: 2px }
+details.more { border: 1px solid var(--line); background: var(--hollow) }
+details.more summary { min-height: 48px; padding: 0 14px; display: flex; align-items: center; font-size: 15px; color: var(--ember); cursor: pointer; list-style: none }
+details.more summary::-webkit-details-marker { display: none }
+details.more summary::before { content: ''; width: 8px; height: 8px; margin-right: 10px; border: solid var(--ember); border-width: 0 2px 2px 0; transform: rotate(-45deg); flex: none }
+details.more[open] summary::before { transform: rotate(45deg) }
+.more-body { display: flex; flex-direction: column; gap: 16px; padding: 4px 14px 16px }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.daygrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px }
+.daygrid label { display: block }
+.daygrid span { display: grid; place-items: center; min-height: 44px; border: 1px solid var(--thread); background: var(--field); font-size: 13px; font-weight: 700; cursor: pointer }
+.daygrid input:checked + span { border-color: var(--ember); background: var(--ember); color: var(--ember-ink) }
+.edit-actions { display: flex; gap: 10px; margin-top: 4px }
+.ghost-btn.wide { width: auto; padding: 0 22px; height: 54px }
+@media (max-width: 359px) { .two { grid-template-columns: 1fr } }
+/* Keep for later, in the edit sheet */
+.tick { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; cursor: pointer }
+.tick input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--ember); flex: none }
+.tick .fine { display: block }
+
+/* Settings: the same sheet as editing a candle */
+.keep-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px }
+.ghost-btn.gear { background: var(--void); border-color: var(--wine); color: var(--bone) }
+.set-body { display: flex; flex-direction: column; gap: 22px }
+.set-card { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--line) }
+.set-h { margin: 0 0 4px; font-size: 20px; font-weight: 700 }
+.set-card .group-h { padding: 14px 0 2px }
+.set-card .fine { margin: 2px 0 6px }
+.set-card .ghost-btn.wide { margin: 6px 0 }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; flex-wrap: wrap }
+.set-row > label:not(.switch) { flex: 1; min-width: 0 }
+.set-row.sub { padding-left: 52px; min-height: 48px }
+.set-in { width: 140px; flex: none }
+select.set-in { width: auto }
+select.set-in { min-width: 160px }
+/* A switch: a dark slot with an ember knob when on */
+.switch { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px }
+.switch .knob { position: relative; flex: none; width: 40px; height: 22px; border: 1px solid var(--thread); background: var(--field); clip-path: var(--cut) }
+.switch .knob::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; background: var(--hint) }
+.switch input:checked + .knob { border-color: var(--ember); background: var(--chosen) }
+.switch input:checked + .knob::after { left: 21px; background: var(--ember) }
+.switch input:focus-visible + .knob { outline: 2px solid var(--ember); outline-offset: 2px }
+.lman { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px }
+.lman li { display: flex; gap: 10px; align-items: center }
+.lman .input { flex: 1; min-width: 0 }
+.set-card .lnew { margin-top: 6px }
+.set-card .lnew .input { flex: 1; min-width: 0 }
+
+/* Framed buttons (look.md): a double frame of gilt with pointed ends and a diamond on each tip.
+   main = an ember glowing in the dark, for the one main action; plain = deep violet; quiet = silver, for worn or not yet. */
+.offer button, .ember-btn, .buy, .stalls button, .ghost-btn.wide {
+  --px-kind: violet; --f-ink: var(--ink-gilt);
+  position: relative; border: 0; background-color: transparent; background-repeat: no-repeat; color: var(--f-ink);
+  font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 2px 0 rgba(0,0,0,.9) }
+.offer button.main, .ember-btn, .buy, .stalls button[aria-pressed="true"] { --px-kind: ember; --f-ink: var(--ink-ember) }
+.buy.wear-btn { --px-kind: violet; --f-ink: var(--ink-gilt) }
+.buy.worn-btn, .offer button:disabled, .ember-btn:disabled, .buy:disabled { --px-kind: iron; --f-ink: var(--ink-silver); cursor: default }
+.offer button:disabled, .ember-btn:disabled, .buy:disabled:not(.worn-btn) { opacity: .55 }
+.offer button:focus-visible, .ember-btn:focus-visible, .buy:focus-visible, .stalls button:focus-visible, .ghost-btn.wide:focus-visible { outline: 0; --px-focus: 1 }
+
+/* Small framed buttons (look.md): for tight rows such as a candle's tools. Looks 30px tall; the tap area stays 44px,
+   so the frame is drawn by the pseudo-elements and the button itself is not clipped. */
+.task-tools button, .sm-btn {
+  --px-kind: small-violet;
+  position: relative; min-height: 44px; padding: 0 16px; border: 0; background-color: transparent; background-repeat: no-repeat; color: var(--ink-gilt);
+  font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 1px 0 rgba(0,0,0,.9); white-space: nowrap }
+.task-tools button:focus-visible, .sm-btn:focus-visible { outline: 0; --px-focus: 1 }
+/* Chosen (Select is on) and not yet (nothing to do it to): ember for chosen, silver on iron for not yet (look.md) */
+.sm-btn[aria-pressed="true"] { --px-kind: small-ember; color: var(--ink-ember) }
+.sm-btn:disabled { --px-kind: small-iron; color: var(--ink-silver); opacity: .55; cursor: default }
+
+/* A room you can enter: the painting on top (art/rooms.py), then how it is coming back (mockup: canvas row
+   "Rooms you can enter"). A full-screen sheet over the screen it was opened from. */
+.room-sheet { position: fixed; inset: 0; z-index: 5; background: var(--void); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column }
+.room-scene { flex: none; position: relative; z-index: 0; width: 100%; aspect-ratio: 130 / 140; max-height: 56vh; overflow: hidden }
+.room-scene svg { display: block; width: 100%; height: 100% }
+.room-top { position: absolute; z-index: 1; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: calc(18px + env(safe-area-inset-top)) 16px 0 10px }
+.room-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: var(--bone); font-size: 15px; font-weight: 700; text-shadow: 0 1px 0 var(--void), 0 0 6px var(--void) }
+.room-back svg { width: 18px; height: 18px }
+.purse { margin-top: 8px; padding: 4px 10px; background: var(--void); border: 1px solid var(--wine); font-size: 12px; color: var(--muted) }
+.purse b { font-size: 14px; color: var(--bone) }
+.room-body { position: relative; z-index: 1; flex: 1; margin-top: -16px; display: flex; flex-direction: column; gap: 14px; padding: 0 20px calc(22px + env(safe-area-inset-bottom)) }
+.room-body .title { font-size: 40px; text-shadow: 0 2px 0 var(--void) }
+.room-line { margin: -8px 0 0; font-size: 15px }
+.room-line span { display: block; color: var(--muted) }
+.stages { position: relative; list-style: none; margin: 0; padding: 0; display: flex; justify-content: space-between }
+.stages::before { content: ''; position: absolute; left: 45px; right: 45px; top: 8px; height: 2px; background: var(--gilt-dim) }
+.stages li { position: relative; width: 90px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; color: var(--room-dim) }
+.stages li::before { content: ''; width: 18px; height: 18px; transform: rotate(45deg); background: var(--room-off); box-shadow: inset 0 0 0 4px var(--room-off), inset 0 0 0 9px var(--room-off-in) }
+.stages li.past { color: var(--muted) }
+.stages li.past::before { background: radial-gradient(var(--room-past-in) 0 0) center / 10px 10px no-repeat, var(--gilt-dim); box-shadow: none }
+.stages li[aria-current] { color: var(--ember) }
+.stages li[aria-current]::before { background: radial-gradient(circle, var(--ink-ember) 0%, var(--ember) 45%, var(--flame-deep) 100%) center / 10px 10px no-repeat, var(--gilt); box-shadow: 0 0 12px var(--ember-glow) }
+.room-count { font-size: 12px; margin-bottom: -12px }
+.in-room { list-style: none; margin: 0; padding: 0 }
+.in-room li { display: flex; align-items: center; gap: 12px; min-height: 33px; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--muted) }
+.in-room li::before { content: ''; flex: none; width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid var(--room-hollow) }
+.in-room li > span:first-child { flex: 1; min-width: 0 }
+.in-room li > span:last-child { flex: none; font-size: 13px }
+.in-room li.on { color: var(--bone) }
+.in-room li.on::before { background: var(--ember); border-color: var(--ember) }
+.in-room li.on > span:last-child { color: var(--ember); font-weight: 700 }
+.room-end { margin-top: auto; display: flex }
+.room-end .ember-btn { height: 46px; width: 100% }
+.room-end p { margin: 0 auto; font-size: 14px; color: var(--muted); text-align: center }
+/* Lit windows on Home are the way in */
+.arches button { flex: 1; min-height: 52px; padding: 0; border: 0; background: transparent; display: flex; justify-content: center; align-items: flex-end }
+.arches > span { flex: 1; display: flex; justify-content: center }
+.arches button:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px }
+.ware-h .sm-btn { margin-left: auto; letter-spacing: 1px }
+.room-done { margin: 4px 0 0; font-size: 14px; color: var(--muted) }
+.nowrap { white-space: nowrap }
+/* On narrow phones the eight windows wrap into two rows of four, so each is a full-size way in (44 px rule) */
+@media (max-width: 359px) {
+  .arches { flex-wrap: wrap }
+  .arches > button, .arches > span { flex: 0 0 25%; min-height: 49px }
+  /* and the panel tightens so the keep and the stores still show on short phones */
+  .relight { gap: 8px; padding-top: 2px }
+  .relight .title { font-size: 23px; white-space: nowrap }
+  .relight .row-between .muted { font-size: 12px }
+}
+
+/* The first start (game-loop.md, "Choosing who you are"; canvas row "First start"): a full-screen sheet over everything */
+.first-sheet { position: fixed; inset: 0; z-index: 6; background: var(--first-sky); overflow-y: auto; overscroll-behavior: contain }
+.first-sheet[data-step="1"] { background: var(--first) }
+.first-body { position: relative; min-height: 100%; display: flex; flex-direction: column }
+.first-body .title:focus { outline: 0 }
+.first-skip { position: absolute; z-index: 2; top: calc(10px + env(safe-area-inset-top)); right: 8px; min-width: 44px; min-height: 44px; padding: 0 12px; border: 0; background: none; color: var(--muted); font-size: 15px; font-style: italic }
+.first-keep { position: absolute; inset: 0; overflow: hidden }
+.first-keep svg { width: 100%; height: 100%; display: block }
+.first-foot { position: relative; margin-top: auto; padding: 120px 28px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; background: var(--first-fade) }
+.first-foot .title { font-size: 58px; line-height: .88 }
+.first-lead { margin: 0; font-size: 17px; line-height: 1.5; color: var(--first-lead) }
+.first-page { flex: 1; padding: calc(64px + env(safe-area-inset-top)) 24px calc(26px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; max-width: 480px; width: 100%; margin: 0 auto }
+.first-page .title { font-size: 48px; line-height: .9; margin-bottom: 12px }
+.first-page.choose { padding-top: calc(36px + env(safe-area-inset-top)) }
+.first-page.choose .title { font-size: 44px; margin-bottom: 0 }
+.rites { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px }
+.rites li { display: grid; grid-template-columns: 52px 1fr; gap: 14px; align-items: start }
+.rites h2 { margin: 2px 0 4px; font-size: 18px }
+.rites p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--first-text) }
+.rite-ic { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: var(--rite-bg); box-shadow: inset 0 0 0 1px var(--rite-edge); clip-path: var(--cut) }
+.rite-ic svg { display: block }
+.rite-well svg { width: 30px; height: 30px }
+.rite-pair { display: flex; gap: 3px; align-items: flex-end }
+.rite-pair svg { width: 18px; height: auto }
+.first-calm { margin: 18px 0 0; padding: 14px 16px; font-size: 15px; line-height: 1.45; color: var(--muted); background: var(--calm-bg); box-shadow: inset 0 0 0 1px var(--calm-edge) }
+.first-go { margin-top: auto; padding-top: 20px; display: flex; flex-direction: column; gap: 18px; align-items: stretch }
+.first-foot .first-go { margin-top: 8px }
+.steps { display: flex; gap: 12px; justify-content: center }
+.steps span { width: 9px; height: 9px; transform: rotate(45deg); background: var(--step-off); box-shadow: 0 0 0 1px var(--step-off-edge) }
+.steps span.on { background: var(--ember); box-shadow: 0 0 0 1px var(--step-on-edge), 0 0 10px var(--step-glow) }
+.choose .field { margin-top: 8px }
+/* Who you are: four framed cards, two by two; the chosen one glows ember */
+.heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px }
+.hero-card { position: relative; border: 0; padding: 12px 8px; min-height: 44px; background: var(--card-edge); clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  display: flex; flex-direction: column; align-items: center; text-align: center; isolation: isolate }
+.hero-card::before { content: ''; position: absolute; inset: 1px; z-index: -1; background: var(--card-fill); clip-path: inherit }
+.hero-card.on { background: var(--gilt) }
+.hero-card.on::before { inset: 2px; background: var(--card-fill-on) }
+.hero-art { position: relative; line-height: 0; padding-bottom: 4px }
+.hero-art::after { content: ''; position: absolute; z-index: -1; left: 12%; right: 12%; bottom: 0; height: 8px; border-radius: 50%; background: var(--card-shadow) }
+.hero-card.on .hero-art::after { background: radial-gradient(ellipse, var(--ember-glow), transparent 70%) }
+.hero-name { margin-top: 6px; font-size: 17px; font-weight: 700 }
+.hero-card.on .hero-name { color: var(--card-name-on) }
+.hero-line { margin-top: 3px; font-size: 13px; line-height: 1.35; color: var(--muted) }
+.hero-card:focus-visible { outline: 0; background: var(--ember) }
+.heroes.small { grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 4px }
+.heroes.small .hero-card { padding: 8px 2px }
+.heroes.small .hero-name { font-size: 13px }
+.first-go .ember-btn { flex: none; width: 100% }

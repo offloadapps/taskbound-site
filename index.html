@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taskbound: finish tasks, wake the keep</title>
+<meta name="description" content="A to-do list with a dark-fantasy heart. Pour everything into the Well, light each task like a candle, and every one you finish wakes another room of the Hollow Keep.">
+<meta name="theme-color" content="#0e050b">
+<link rel="icon" type="image/png" href="app/img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-512.png">
+<meta property="og:title" content="Taskbound: finish tasks, wake the keep">
+<meta property="og:description" content="A to-do list with a dark-fantasy heart. Coming soon to Google Play. Try it in your browser now.">
+<meta property="og:image" content="img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/Jacquard24.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="site.css">
+<style>
+/* Landing page. The night (js/world.js) is one fixed canvas behind everything: the keep in Gaussian splats, smoke and
+   embers. Scrolling turns the camera, pushes the smoke and wakes the windows; the header counts the rooms awake.
+   Words sit in dark veils so they stay readable over the moving night. Motion stops with reduced motion. */
+html,body{overflow-x:hidden;overflow-x:clip}
+#world{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;image-rendering:pixelated;opacity:0;transition:opacity 1.2s ease}
+.gl-on #world{opacity:1}
+/* without WebGL2: the app's flat painting of the keep */
+.night-fallback{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 70% 30%,#2a1236 0%,#160a1c 55%,#0e050b 100%)}
+.night-fallback img{position:absolute;right:8vw;bottom:0;height:100%;width:auto;image-rendering:pixelated;opacity:0}
+.no-gl .night-fallback img{opacity:1}
+@media (max-aspect-ratio:21/20){.night-fallback img{right:50%;translate:50% 0}}
+.page{position:relative;z-index:1}
+
+/* the header: the brand, the rooms awake, and Try it */
+.top{position:fixed;inset:0 0 auto 0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px max(20px,env(safe-area-inset-right)) 14px max(20px,env(safe-area-inset-left));
+  background:linear-gradient(180deg,rgba(8,3,7,.85) 0%,rgba(8,3,7,.55) 60%,rgba(8,3,7,0) 100%)}
+.hud{display:flex;align-items:center;gap:12px;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.hud ol{display:flex;gap:5px;margin:0;padding:0;list-style:none}
+.hud li{width:10px;height:15px;border-radius:5px 5px 1px 1px;background:#1a1020;box-shadow:inset 0 0 0 1px #4a3852;transition:background .6s,box-shadow .6s}
+.hud li.on{background:linear-gradient(180deg,#ffd27a,#f07a3a 60%,#c4502e);box-shadow:0 0 8px rgba(240,140,70,.8),inset 0 0 0 1px #ffd27a}
+.hud b{color:var(--ember);font-weight:700}
+@media (max-width:720px){.hud span{display:none}}
+.no-gl .hud{display:none}
+@media (max-width:440px){.hud{display:none}.brand{font-size:1.7rem}}
+
+/* sections: on wide screens the words sit left and the keep stands to the right */
+.sec{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;
+  padding:120px max(20px,env(safe-area-inset-right)) 96px max(20px,env(safe-area-inset-left))}
+.col{width:min(640px,52vw);margin-left:max(0px,calc((100vw - 1320px)/2))}
+.veil{position:relative;isolation:isolate;padding:clamp(28px,4vw,44px)}
+.veil::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;clip-path:var(--cut);
+  background:linear-gradient(135deg,rgba(12,4,10,.88) 0%,rgba(12,4,10,.74) 100%);box-shadow:inset 0 0 0 1px rgba(107,42,58,.6),inset 0 0 0 7px rgba(12,4,10,0),inset 0 0 0 8px rgba(230,194,122,.14)}
+h2{font-size:clamp(2.5rem,4.4vw,3.6rem);color:var(--bone)}
+.lead{font-size:clamp(1.08rem,1.6vw,1.22rem);color:var(--muted);margin:16px 0 0;max-width:36rem}
+.rune{display:inline-grid;place-items:center;width:44px;height:44px;margin-bottom:18px;rotate:45deg;background:var(--gilt-diag);padding:2px}
+.rune span{display:grid;place-items:center;width:100%;height:100%;background:radial-gradient(circle at 50% 40%,#3a2050 0%,#1e0e2a 60%,#120818 100%);
+  font:400 1.25rem/1 var(--f-display);color:var(--ink-gilt)}
+.rune span i{rotate:-45deg;font-style:normal}
+
+/* hero */
+.hero{align-items:flex-end;padding-bottom:clamp(56px,9vh,110px)}
+.hero h1{font-size:clamp(3.6rem,9vw,7.4rem);color:var(--bone);text-shadow:0 4px 30px rgba(0,0,0,.8),0 0 60px rgba(240,120,60,.25)}
+.hero h1 em{font-style:normal;color:var(--ember);text-shadow:0 0 28px rgba(240,140,70,.6),0 4px 30px rgba(0,0,0,.8)}
+.hero .lead{color:#e2d0b4;font-size:clamp(1.12rem,1.8vw,1.32rem);text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.hero .col{display:grid;gap:22px}
+.cta{display:flex;flex-wrap:wrap;gap:16px 20px;align-items:center;margin-top:10px}
+.play{display:inline-flex;align-items:center;gap:10px;font-weight:700;color:var(--muted);font-size:.98rem;text-shadow:0 1px 8px #000}
+.play svg{width:22px;height:22px;flex:none}
+.cue{display:flex;align-items:center;gap:12px;margin-top:18px;font-size:.9rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-shadow:0 1px 8px #000}
+.cue i{width:10px;height:10px;rotate:45deg;border:2px solid var(--ember);border-top:0;border-left:0;animation:cue 2.4s ease-in-out infinite}
+@keyframes cue{50%{translate:0 6px;opacity:.5}}
+.hero-veil{position:absolute;inset:auto 0 0 0;height:70%;pointer-events:none;background:linear-gradient(0deg,rgba(8,3,7,.9) 0%,rgba(8,3,7,.5) 45%,rgba(8,3,7,0) 100%)}
+
+/* a chapter: words with a phone or two */
+.chapter .veil{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(24px,3vw,40px);align-items:center}
+.chapter.two .veil{grid-template-columns:1fr}
+.phone{--pw:clamp(180px,17vw,230px);width:var(--pw);aspect-ratio:390/844;padding:3px;background:var(--gilt);clip-path:var(--cut);flex:none;
+  box-shadow:0 30px 60px -20px #000;transform:rotate(var(--tilt,2deg))}
+.phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;clip-path:var(--cut)}
+.phones{display:flex;gap:20px;justify-content:flex-start;margin-top:28px}
+.phones .phone:nth-child(2){--tilt:-2deg;margin-top:34px}
+ul.marks{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:10px}
+ul.marks li{position:relative;padding-left:26px;color:var(--bone)}
+ul.marks li::before{content:"";position:absolute;left:3px;top:.55em;width:9px;height:9px;rotate:45deg;background:var(--ember);box-shadow:0 0 10px rgba(240,140,70,.8)}
+.quote{margin:18px 0 0;padding:12px 16px;background:rgba(127,214,194,.07);border-left:2px solid var(--teal);color:#cfe9e2;font-size:1rem}
+
+/* full-width bands: the rooms and who you are */
+.band{position:relative;padding:120px 0 100px}
+.band .head{padding:0 max(20px,env(safe-area-inset-left));max-width:1320px;margin:0 auto 40px}
+.band .head .veil{display:inline-block;max-width:720px}
+.rooms{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px max(20px,env(safe-area-inset-left)) 28px;scrollbar-width:thin;scrollbar-color:#6b2a3a transparent}
+.room{flex:none;width:clamp(240px,24vw,300px);scroll-snap-align:start;margin:0;background:var(--veil);clip-path:var(--cut);box-shadow:inset 0 0 0 1px rgba(107,42,58,.7);padding:10px 10px 18px}
+.room .art{display:block;width:100%;aspect-ratio:130/140;background-size:800% 400%;background-position:0 0;image-rendering:pixelated;clip-path:var(--cut)}
+.room figcaption{padding:14px 8px 0;display:grid;gap:4px}
+.room b{font:400 1.7rem/1 var(--f-display);color:var(--bone)}
+.room span{color:var(--muted);font-size:.95rem}
+.room .stage{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ember)}
+.heroes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;max-width:1320px;margin:0 auto;padding:0 max(20px,env(safe-area-inset-left))}
+.hero-card{position:relative;margin:0;padding:22px 18px 24px;text-align:center;background:linear-gradient(180deg,rgba(30,14,32,.92) 0%,rgba(20,8,18,.92) 100%);clip-path:var(--cut);
+  box-shadow:inset 0 0 0 1px #4a2a44;display:grid;gap:8px;justify-items:center;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.hero-card:hover{transform:translateY(-6px)}
+.hero-card:hover,.hero-card.lit{background:radial-gradient(ellipse 80% 70% at 50% 38%,#4a1c1a 0%,#24101a 60%,#160a14 100%);box-shadow:inset 0 0 0 1.5px #c8a462}
+.hero-card img{width:min(100%,168px);height:auto;aspect-ratio:24/30;image-rendering:pixelated;filter:drop-shadow(0 12px 10px rgba(0,0,0,.6))}
+.hero-card b{font:400 2.2rem/1 var(--f-display);color:var(--bone)}
+.hero-card span{color:var(--muted);font-size:.98rem;max-width:22ch}
+
+/* gentle by design */
+.gentle .veil{display:grid;gap:22px}
+.vows{display:grid;gap:14px;margin:6px 0 0;padding:0;list-style:none}
+.vows li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:start}
+.vows i{grid-row:span 2;width:14px;height:14px;rotate:45deg;margin:8px 4px 0;background:var(--gilt-diag)}
+.vows b{font-size:1.1rem}
+.vows span{color:var(--muted)}
+
+/* the close */
+.close .veil{display:grid;gap:20px;justify-items:start}
+.close h2{font-size:clamp(3rem,7vw,5.6rem)}
+.iphone{margin:8px 0 0;font-size:.98rem;color:var(--muted);max-width:52ch}
+.iphone b{color:var(--bone)}
+.foot-wrap{position:relative;z-index:1;padding:28px max(20px,env(safe-area-inset-right)) 36px max(20px,env(safe-area-inset-left));background:linear-gradient(0deg,#08030a 0%,rgba(8,3,10,.85) 100%);border-top:1px solid var(--line)}
+
+/* things settle in as they come into view */
+.js .reveal{opacity:0;translate:0 40px;transition:opacity .9s ease,translate .9s cubic-bezier(.2,.7,.2,1)}
+.js .reveal.seen{opacity:1;translate:0 0}
+.js .phone.reveal{translate:0 60px}
+@media (prefers-reduced-motion:reduce){
+  .js .reveal{opacity:1;translate:none;transition:none}.cue i{animation:none}.hero-card{transition:none}
+  #world{transition:none}
+}
+
+/* tall screens: the keep stands centred behind the words */
+@media (max-aspect-ratio:21/20){
+  .col{width:100%;margin:0}
+  .sec{min-height:auto;padding-top:46vh}
+  .hero{min-height:100vh;min-height:100svh;padding-top:0}
+  .chapter .veil{grid-template-columns:1fr}
+  .chapter .phone{justify-self:center}
+  .phones{justify-content:center}
+  .heroes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .band{padding-top:40vh}
+}
+@media (max-width:520px){
+  .hero .eyebrow{font-size:.68rem;letter-spacing:.16em}
+  .hero .col{gap:16px}
+  .hero .lead{font-size:1.05rem}
+  .cue{display:none}
+}
+@media (max-width:420px){
+  .phone{--pw:min(46vw,190px)}
+  .phones{gap:12px}
+  .hero-card{padding:16px 10px 18px}
+  .hero-card b{font-size:1.8rem}
+}
+</style>
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<div class="night-fallback" aria-hidden="true"><img src="app/img/keep.png" alt="" width="130" height="282"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+
+<header class="top">
+  <a class="brand" href="./"><img src="app/img/icon-192.png" alt="" width="36" height="36">Taskbound</a>
+  <div class="hud" aria-hidden="true"><ol><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li><li data-hud-win></li></ol><span><b id="hud-n">1</b> of 8 rooms awake</span></div>
+  <a class="fbtn small violet" href="app/"><span class="fr"><span class="fl">Try it</span></span></a>
+</header>
+
+<div class="page">
+<main>
+  <section class="sec hero" aria-labelledby="hero-h">
+    <div class="hero-veil"></div>
+    <div class="col">
+      <p class="eyebrow">A to-do list with a dark-fantasy heart</p>
+      <h1 id="hero-h">Finish tasks.<br><em>Wake the keep.</em></h1>
+      <p class="lead">Pour everything on your mind into the Well. Light each task like a candle. Every one you finish wakes another room of the Hollow Keep, and sends your hero further into the night.</p>
+      <div class="cta">
+        <a class="fbtn" href="app/"><span class="fr"><span class="fl">Play it in your browser</span></span></a>
+        <span class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17l14-8.5z" fill="none" stroke="#c8a462" stroke-width="2" stroke-linejoin="round"/></svg>Coming soon to Google Play</span>
+      </div>
+      <p class="cue" aria-hidden="true"><i></i>Scroll to wake it</p>
+    </div>
+  </section>
+
+  <section class="sec chapter" aria-labelledby="well-h">
+    <div class="col"><div class="veil reveal">
+      <div>
+        <div class="rune" aria-hidden="true"><span><i>I</i></span></div>
+        <p class="eyebrow">Offload</p>
+        <h2 id="well-h">Cast it all into the Well.</h2>
+        <p class="lead">Type it the way you think, a whole list at once. Taskbound sorts out the dates, repeats, reminders and sizes, and your tasks rise back up as runestones.</p>
+        <p class="quote">"bins out friday 6pm, remind me 30 mins before"</p>
+        <ul class="marks"><li>No forms, no fiddling with dates</li><li>Say it out loud on Android</li></ul>
+      </div>
+      <div class="phone reveal" style="--tilt:3deg"><img src="img/shots/well.jpg" alt="The Well: five tasks typed in plain words, each sorted into a runestone with its date, reminder and size." loading="lazy" width="780" height="1688"></div>
+    </div></div>
+  </section>
+
+  <section class="sec chapter" aria-labelledby="candles-h">
+    <div class="col"><div class="veil reveal">
+      <div>
+        <div class="rune" aria-hidden="true"><span><i>II</i></span></div>
+        <p class="eyebrow">Your tasks</p>
+        <h2 id="candles-h">Every task is a candle.</h2>
+        <p class="lead">A taller candle is a bigger task. Tap it to light it, and it burns on with the rest of what you got done today. Later days wait quietly in the dark.</p>
+        <ul class="marks"><li>Today first, then what's coming</li><li>Lists, repeats and gentle reminders</li><li>Big tasks earn more</li></ul>
+      </div>
+      <div class="phone reveal" style="--tilt:-3deg"><img src="img/shots/tasks.jpg" alt="The candles: today's tasks as pixel candles of different heights, with the embers each one earns." loading="lazy" width="780" height="1688"></div>
+    </div></div>
+  </section>
+
+  <section class="sec chapter" aria-labelledby="keep-h">
+    <div class="col"><div class="veil reveal">
+      <div>
+        <div class="rune" aria-hidden="true"><span><i>III</i></span></div>
+        <p class="eyebrow">The Hollow Keep</p>
+        <h2 id="keep-h">Embers wake the keep.</h2>
+        <p class="lead">Finished tasks give you embers. Offer them to the keep and its rooms wake one window at a time. Watch the keep behind these words: it wakes as you read.</p>
+      </div>
+      <div class="phone reveal" style="--tilt:2deg"><img src="img/shots/home.jpg" alt="Home: the keep on its stone spire under a ringed moon, five windows lit, with Offer buttons below." loading="lazy" width="780" height="1688"></div>
+    </div></div>
+  </section>
+</main>
+
+<section class="band" aria-labelledby="rooms-h">
+  <div class="head"><div class="veil reveal">
+    <p class="eyebrow">Eight rooms to bring back</p>
+    <h2 id="rooms-h">Go in. Make it home.</h2>
+    <p class="lead">Every woken room can be entered. It starts dusty and cold, and remembers being loved. Each thing you bring for it brings it back a little, from Dusty to Swept to Lived in.</p>
+  </div></div>
+  <div class="rooms" role="list">
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/gatehouse.png)" role="img" aria-label="The Gatehouse, filling with furnishings"></span><figcaption><b>The Gatehouse</b><span>A coat hook shaped like a heron.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/hall.png)" role="img" aria-label="The Great Hall, filling with furnishings"></span><figcaption><b>The Great Hall</b><span>A tapestry of a sleeping whale.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/library.png)" role="img" aria-label="The Library, filling with furnishings"></span><figcaption><b>The Library</b><span>A globe of places nobody has named.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/chapel.png)" role="img" aria-label="The Chapel, filling with furnishings"></span><figcaption><b>The Chapel</b><span>Bells of folded paper.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/kitchens.png)" role="img" aria-label="The Kitchens, filling with furnishings"></span><figcaption><b>The Kitchens</b><span>Honey from the moths.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/armoury.png)" role="img" aria-label="The Armoury, filling with furnishings"></span><figcaption><b>The Armoury</b><span>Banners of houses that never were.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/observatory.png)" role="img" aria-label="The Observatory, filling with furnishings"></span><figcaption><b>The Observatory</b><span>A jar of fallen stars.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+    <figure class="room reveal" role="listitem"><span class="art" style="background-image:url(app/img/rooms/tower.png)" role="img" aria-label="The Tower Top, filling with furnishings"></span><figcaption><b>The Tower Top</b><span>Wind chimes of old keys.</span><span class="stage" data-stage>Dusty</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="who-h">
+  <div class="head"><div class="veil reveal">
+    <p class="eyebrow">Your hero</p>
+    <h2 id="who-h">Who wakes the keep?</h2>
+    <p class="lead">Choose who you are and give them a name. They carry your finished tasks out into the world, and wear everything you earn.</p>
+  </div></div>
+  <div class="heroes">
+    <figure class="hero-card reveal"><img src="img/art/hero-knight.svg" alt="" width="168" height="210"><b>Knight</b><span>Steady and sworn. Keeps the old vows of the keep.</span></figure>
+    <figure class="hero-card reveal"><img src="img/art/hero-cleric.svg" alt="" width="168" height="210"><b>Cleric</b><span>Carries a lantern for anyone tired or lost.</span></figure>
+    <figure class="hero-card reveal"><img src="img/art/hero-bandit.svg" alt="" width="168" height="210"><b>Bandit</b><span>Quiet feet, quick hands, a soft spot for strays.</span></figure>
+    <figure class="hero-card reveal"><img src="img/art/hero-barbarian.svg" alt="" width="168" height="210"><b>Barbarian</b><span>Big, warm and loud. Carries the heavy things.</span></figure>
+  </div>
+</section>
+
+<section class="sec chapter two" aria-labelledby="journeys-h">
+  <div class="col"><div class="veil reveal">
+    <div>
+      <div class="rune" aria-hidden="true"><span><i>IV</i></span></div>
+      <p class="eyebrow">Journeys and the Market</p>
+      <h2 id="journeys-h">Send them out. Bring back silver.</h2>
+      <p class="lead">Finished tasks pack provisions. Spend them to send your hero across the star chart, to the Hush Garden, the Drowned Mill and the Glass Ruins. They come home with silver and sometimes a small found thing.</p>
+      <ul class="marks"><li>Furnish your rooms at the Market</li><li>Armour, weapons and trinkets that make journeys shorter and richer</li></ul>
+    </div>
+    <div class="phones">
+      <div class="phone reveal" style="--tilt:2deg"><img src="img/shots/journeys.jpg" alt="Journeys: a star chart with the keep at the centre and three places on its rings." loading="lazy" width="780" height="1688"></div>
+      <div class="phone reveal"><img src="img/shots/market.jpg" alt="The Market: a pixel knight in a moth-wing cloak with a lantern blade, and armour to buy with silver." loading="lazy" width="780" height="1688"></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="sec gentle" aria-labelledby="gentle-h">
+  <div class="col"><div class="veil reveal">
+    <div>
+      <div class="rune" aria-hidden="true"><span><i>V</i></span></div>
+      <p class="eyebrow">Dark skies, kind rules</p>
+      <h2 id="gentle-h">Nothing here ever punishes you.</h2>
+    </div>
+    <ul class="vows">
+      <li><i></i><b>No streaks, nothing expires</b><span>Nothing is ever late and nothing is lost. A quiet week just means the keep waits for you.</span></li>
+      <li><i></i><b>Small steps count</b><span>Tiny tasks earn embers too. Replying to one message is a real thing done.</span></li>
+      <li><i></i><b>Stays on your phone</b><span>No account. Your tasks are saved on your device and never sent anywhere.</span></li>
+    </ul>
+  </div></div>
+</section>
+
+<section class="sec close" aria-labelledby="close-h">
+  <div class="col"><div class="veil reveal">
+    <p class="eyebrow">Coming soon to Google Play</p>
+    <h2 id="close-h">The keep is waiting.</h2>
+    <p class="lead">Try Taskbound in your browser now, no sign-up. The Android app is on its way.</p>
+    <a class="fbtn" href="app/"><span class="fr"><span class="fl">Play it in your browser</span></span></a>
+    <p class="iphone"><b>On an iPhone?</b> The <a href="app/">web version</a> works in Safari and saves on your phone. Reminders need the Android app for now.</p>
+  </div></div>
+</section>
+</div>
+
+<div class="foot-wrap">
+  <footer class="foot">
+    <span>Taskbound</span>
+    <nav><a href="app/">Web version</a><a href="privacy.html">Privacy policy</a></nav>
+  </footer>
+</div>
+
+<script src="app/keep-splat.js"></script>
+<script src="js/world.js"></script>
+<script>
+// Sections settle in as they come into view; rooms fill from Dusty to Lived in; the hero cards glow in turn. Off with reduced motion.
+(function(){
+  var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els=document.querySelectorAll('.reveal');
+  // each room's painting is a sheet of 32 frames (8 x 4), one for every set of its five furnishings: 0 bare, 31 everything
+  var FR=[0,1,3,7,15,31],STAGE=['Dusty','Dusty','Swept','Swept','Lived in','Lived in'];
+  function frame(room,k){var f=FR[k],a=room.querySelector('.art');a.style.backgroundPosition=(f%8)/7*100+'% '+Math.floor(f/8)/3*100+'%';room.querySelector('[data-stage]').textContent=STAGE[k]}
+  function fill(room){if(room._f)return;room._f=1;if(calm){frame(room,5);return}var k=0;(function step(){frame(room,k);if(++k<FR.length)setTimeout(step,520)})()}
+  if(calm||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('seen')});document.querySelectorAll('.room').forEach(fill);return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;e.target.classList.add('seen');
+    if(e.target.classList.contains('room'))setTimeout(function(){fill(e.target)},300);io.unobserve(e.target)})},{rootMargin:'0px 0px -10% 0px',threshold:.15});
+  els.forEach(function(e){io.observe(e)});
+  var cards=document.querySelectorAll('.hero-card'),ci=0;
+  setInterval(function(){cards.forEach(function(c,i){c.classList.toggle('lit',i===ci)});ci=(ci+1)%cards.length},2600);
+})();
+</script>
+</body>
+</html>
