@@ -16,9 +16,7 @@ The website for Taskbound: a landing page, the privacy policy and the web versio
 
 ## Updating the web version
 
-In the `taskbound` repository run `python3 tools/build.py web`, then replace this repository's `app/` with
-`dist/web/`. Keep `app/fonts/Jacquard24-Regular.ttf` and `app/fonts/OFL-Jacquard24.txt`: the app's `fonts.css` asks for
-the font but the app repository doesn't have it yet. If the keep's sculpt changes, the landing page picks it up from
-`app/keep-splat.js` with no other change.
-
-Copied from `offloadapps/taskbound` at `1bf820c`.
+Automatic: after each push to `main` in `offloadapps/taskbound` builds and passes its checks, that repository's Build
+workflow ("Update the website") copies `dist/web` into `app/` here and pushes it as `Taskbound <app.taskbound@gmail.com>`.
+It uses the deploy key set up in the taskbound README ("Website"). Don't edit `app/` by hand: the next build replaces it.
+If the keep's sculpt changes, the landing page picks it up from `app/keep-splat.js` with no other change.
