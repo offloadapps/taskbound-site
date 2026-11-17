@@ -525,7 +525,19 @@ const ART = (() => {
     if (w !== v.w || h !== v.h) { v.w = v.c.width = v.buf.width = w; v.h = v.c.height = v.buf.height = h; v.c.style.width = w * 3 + 'px'; v.c.style.height = h * 3 + 'px' }
     const { ctx } = v, ox = Math.round((w - 130) / 2 - v.yaw * 8), oy = Math.round(v.pitch * 10);
     ctx.fillStyle = '#050309'; ctx.fillRect(0, 0, w, h);
-    if (v.sky.complete && v.sky.naturalWidth) ctx.drawImage(v.sky, ox, oy); // the night shifts a little the other way: it's far off
+    if (v.sky.complete && v.sky.naturalWidth) { // the night shifts a little the other way: it's far off
+      const sw = v.sky.naturalWidth;
+      ctx.drawImage(v.sky, ox, oy);
+      // wider than the painting (tablets, the web version): carry the sky on with mirrored copies, so there are no dark strips
+      if (ox > 0 || ox + sw < w) {
+        ctx.save(); ctx.scale(-1, 1);
+        for (let x = ox - sw; x + sw > 0; x -= sw * 2) ctx.drawImage(v.sky, -(x + sw), oy);
+        for (let x = ox + sw; x < w; x += sw * 2) ctx.drawImage(v.sky, -(x + sw), oy);
+        ctx.restore();
+        for (let x = ox - sw * 2; x + sw > 0; x -= sw * 2) ctx.drawImage(v.sky, x, oy);
+        for (let x = ox + sw * 2; x < w; x += sw * 2) ctx.drawImage(v.sky, x, oy);
+      }
+    }
     const img = k3draw(ctx, w, h, v.yaw, v.pitch, v.lit), b = v.buf.getContext('2d');
     b.putImageData(img, 0, 0);
     ctx.drawImage(v.buf, 0, 0);
@@ -536,8 +548,9 @@ const ART = (() => {
      baked into Gaussian splats (art/hero_splat.js writes hero-splat.js). A look is put together from parts: a body, arms in a
      pose, a helm, a weapon (and a shield for the knight), a cloak and a surcoat; colours are swapped as it is drawn (the
      cloak, the surcoat, and the tier of armour and weapon). Splats are drawn nearest first as solid dabs on a small pixel
-     grid, then, like a pixel artist: a dark outline round the figure, a darker seam where two pieces meet, and moonlight on
-     the upper left edge of each piece (at small sizes only the outer rim and seams between different colours).
+     grid, then, like a pixel artist: a dark outline round the figure, a darker seam where two pieces meet, and a faint
+     moonlit rim on the figure's own upper left edge, never between pieces (at small sizes seams only between different
+     colours).
      fig = { cls, body, helm, weapon, off, pose, cloak (0-4 or -1), tabard (0-4), armour (tier 0-5), arms (tier 0-5) } */
   const HX = { parts: {}, pal: null };
   const hexrgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -649,14 +662,14 @@ const ART = (() => {
       let c = rgb(col[o]);
       const me = pcs[o], dark = c[0] + c[1] + c[2] < 40;
       const up = y > 0 ? (col[o - w] < 0 ? -1 : pcs[o - w]) : -1, left = x > 0 ? (col[o - 1] < 0 ? -1 : pcs[o - 1]) : -1;
-      const rim = small ? (up === -1 || left === -1) : (up !== me || left !== me);
+      const rim = up === -1 || left === -1; // the silhouette only (developer, 17 Nov 2026)
       let seam = false;
       for (const [xx, yy] of [[x, y + 1], [x + 1, y]]) {
         if (!has(xx, yy)) continue; const o2 = yy * w + xx;
         if (pcs[o2] !== me && (!small || far(rgb(col[o2]), c))) seam = true;
       }
       if (!dark && seam && !rim) c = c.map(v => v * .5 | 0);
-      else if (!dark && rim) c = c.map(v => Math.min(255, v + (255 - v) * .28 + 6 | 0));
+      else if (!dark && rim) c = c.map(v => Math.min(255, v + (255 - v) * .14 + 2 | 0));
       out[q] = c[0]; out[q + 1] = c[1]; out[q + 2] = c[2]; out[q + 3] = 255;
     }
     return img;

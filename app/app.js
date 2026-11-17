@@ -102,8 +102,13 @@ function gearPerks() {
   return p;
 }
 // What goes with the next journey: the worn gear and the oldest found thing in the satchel.
+/* Each calling's gift (game-loop.md, "Gifts"): one small, steady help on journeys, on top of gear. Knight +1 silver a
+   provision, cleric finds things half as often again, bandit +10% silver, barbarian 10% shorter. */
+const gift = (cls = S.hero.cls) => CALLING[cls].gift;
+const findChance = d => Math.min(1, FIND_CHANCE[d.id] * (100 + (gift()[2].find || 0)) / 100);
 function perks() {
-  const p = gearPerks(), f = FOUND_BY[S.satchel[0]];
+  const p = gearPerks(), f = FOUND_BY[S.satchel[0]], g = gift()[2];
+  for (const k in p) p[k] += g[k] || 0;
   if (f) for (const k of ['shorter', 'more', 'flat']) p[k] += f[k] || 0;
   return p;
 }
@@ -116,34 +121,34 @@ function trip(d, p = perks()) {
    the hero's own sheet. Gear keeps its ids, prices and effects; each calling calls it by its own names and wears it its
    own way. An empty name is Bramble, the keep's old name for its wanderer. */
 const CLOTHS = ['Wine', 'Midnight', 'Moss', 'Ash', 'Umber'];
-const TUT = ['well', 'candle', 'wake', 'gate', 'home']; // the first minute's steps, saved as S.tut ('' when done)
+const TUT = ['well', 'candle', 'wake', 'gate', 'home', 'renown']; // the first minute's steps, saved as S.tut ('' when done)
 const ARMOUR_IDS = ['cloak', 'ringmail', 'plate', 'leaves', 'moonscale'], WEAPON_IDS = ['staff', 'blade', 'hook', 'bellspear', 'promise'];
 const CALLING = {
   knight: { name: 'Knight', line: 'Sworn to the keep, long ago. Mail under plate, a great helm, a sword and a shield.', body: 'mail',
     helms: [['great', 'Great helm'], ['bascinet', 'Visored bascinet'], ['barbute', 'Barbute'], ['coif', 'Mail coif']],
-    weapons: [['sword', 'Arming sword'], ['mace', 'Flanged mace'], ['hammer', 'War hammer']], offs: [['kite', 'Kite shield'], ['heater', 'Heater shield']],
-    cloak: 0, tabard: 0, tabWord: 'Surcoat and shield',
+    weapons: [['sword', 'Arming sword'], ['mace', 'Flanged mace'], ['hammer', 'War hammer'], ['greatsword', 'Old greatsword']], offs: [['kite', 'Kite shield'], ['heater', 'Heater shield'], ['none', 'No shield']],
+    cloak: 0, tabard: 0, tabWord: 'Surcoat and shield', gift: ['Steadfast', '+1 silver for each provision a journey takes', { per: 1 }],
     armour: [['Brigandine', 'Plates riveted inside cloth.'], ['Coat of plates', 'Heavier, and it shows.'], ['Half-plate', 'Bright where it counts.'], ['Full plate', 'Every inch spoken for.'], ['Moonsteel plate', 'Forged under the ringed moon.']],
     arms: [['Longsword', 'sword', 'A proper knight’s blade.'], ['Morning star', 'mace', 'Heavier than it looks.'], ['War hammer', 'hammer', 'For doors that will not open.'], ['Greatsword', 'greatsword', 'Two hands, one purpose.'], ['Moonsteel blade', 'sword', 'It was a promise, and it was kept.']],
     voice: ['The hall’s warmer for it.', 'Another candle, another window.', 'Rest when you need to. The keep will wait.', '{n} awake. We’ll wake the rest.'] },
   cleric: { name: 'Cleric', line: 'Keeps the chapel quiet. Long robes, a deep hood, a sun staff and the book of hours.', body: 'robe',
     helms: [['deep', 'Deep hood'], ['pointed', 'Pointed hood']],
     weapons: [['sunstaff', 'Sun staff'], ['staff', 'Pilgrim’s staff'], ['mace', 'Flanged mace']], offs: [],
-    cloak: -1, tabard: 0, tabWord: 'Stole',
+    cloak: -1, tabard: 0, tabWord: 'Stole', gift: ['Blessed road', 'finds things on journeys more often', { find: 50 }],
     armour: [['Wool vestments', 'Warm, and mended twice.'], ['Embroidered vestments', 'Someone sewed every star.'], ['Vestments of dawn', 'They catch the first light.'], ['Gilded vestments', 'Gold thread, worn soft.'], ['Vestments of the ringed moon', 'Pale as the moon’s own ring.']],
     arms: [['Pilgrim’s staff', 'staff', 'It has walked a long way.'], ['Flanged mace', 'mace', 'For the long nights.'], ['Sun staff', 'sunstaff', 'A little sun, carried.'], ['Mace of dawn', 'mace', 'Gilded, and gentle with it.'], ['Staff of the ringed moon', 'sunstaff', 'It hums when the moon is full.']],
-    voice: ['The chapel bells moved. Just slightly.', 'Light enough to read by.', 'Small things, done gently, add up.', '{n} remember us now.'] },
+    voice: ['The chapel bells moved. Just slightly.', 'Light enough to read by.', 'Small things, done gently, add up.', 'The chapel counts {n} awake.'] },
   bandit: { name: 'Bandit', line: 'Knows every door nobody locks. Light leathers, a hood and scarf, a blade in each hand.', body: 'leathers',
     helms: [['hood', 'Hood and scarf'], ['kettle', 'Kettle hat and scarf']],
-    weapons: [['daggers', 'Two daggers']], offs: [],
-    cloak: 2, tabard: 3, tabWord: 'Scarf',
+    weapons: [['daggers', 'Two daggers'], ['shortswords', 'Two short swords']], offs: [],
+    cloak: 2, tabard: 3, tabWord: 'Scarf', gift: ['Light fingers', '+10% silver from every journey', { more: 10 }],
     armour: [['Studded jerkin', 'Quiet rivets.'], ['Black leathers', 'Darker than the night.'], ['Shadow leathers', 'Nobody quite sees them.'], ['Nightweave', 'Softer than it should be.'], ['Moonshadow leathers', 'They keep to the shadows of the moon.']],
     arms: [['Paired dirks', 'daggers', 'One for each hand.'], ['Twin shortswords', 'shortswords', 'A little more reach.'], ['Night knives', 'daggers', 'They never catch the light.'], ['Fang blades', 'shortswords', 'Curved, and very quick.'], ['Moon fangs', 'shortswords', 'Pale, and very sharp.']],
     voice: ['Found a door nobody locks.', 'Quietly done. Nobody saw.', '{n}. Not bad for a night.', 'Keep your boots dry. Keep going.'] },
   barbarian: { name: 'Barbarian', line: 'Down from the far crags. Big and bare-armed, a horned helm, an axe in each hand.', body: 'bare',
     helms: [['horned', 'Horned helm'], ['pelt', 'Wolf pelt']],
-    weapons: [['axes', 'Two hand axes']], offs: [],
-    cloak: -1, tabard: -1, tabWord: '',
+    weapons: [['axes', 'Two hand axes'], ['cleavers', 'Two old cleavers']], offs: [],
+    cloak: -1, tabard: -1, tabWord: '', gift: ['Long strides', 'journeys 10% shorter', { shorter: 10 }],
     armour: [['Wolf pelt', 'Still smells of the hills.'], ['Bear pelt', 'Warm enough for two.'], ['Cave-bear mantle', 'From a very old bear.'], ['Gilded war-harness', 'Gold on leather, for feast days.'], ['Moon-pelt', 'White as the moon, and as quiet.']],
     arms: [['Bearded axes', 'axes', 'Two of them. Of course.'], ['War axes', 'axes', 'Bigger. Better.'], ['Twin cleavers', 'cleavers', 'For very big logs.'], ['Great war axes', 'cleavers', 'Heavy enough to rest on.'], ['Moon axes', 'cleavers', 'They ring like bells.']],
     voice: ['Three done. More.', 'The keep likes noise. Light something.', '{n} awake! Ha.', 'Heavy things first. Then rest.'] }
@@ -172,6 +177,13 @@ function itemTale(i, cls = S.hero.cls) {
   const a = ARMOUR_IDS.indexOf(i.id), w = WEAPON_IDS.indexOf(i.id);
   return a >= 0 ? CALLING[cls].armour[a][1] : w >= 0 ? CALLING[cls].arms[w][2] : i.tale;
 }
+// What is worn in a slot, by name: a Market piece, or the first kit you set out in (the Market and the hero's sheet agree).
+function wornName(k) {
+  const g = ITEM_BY[S.wear[k]], C = CALLING[S.hero.cls];
+  if (g) return itemName(g);
+  if (k === 'weapon') { const w = C.weapons.find(([x]) => x === S.hero.weapon); return w ? w[1] : C.weapons[0][1] }
+  return k === 'armour' ? 'What you set out in' : 'Nothing yet';
+}
 // The figure ART.hero3d draws for a look and what is worn (art.js, "The hero in 3D").
 function fig(h = S.hero, wear = S.wear, pose = 'rest') {
   const C = CALLING[h.cls], at = tierOf(wear.armour, ARMOUR_IDS), wt = tierOf(wear.weapon, WEAPON_IDS);
@@ -184,12 +196,16 @@ const renownAt = n => 5 * n * (n - 1);
 const renownLevel = r => { let n = 1; while (renownAt(n + 1) <= r) n++; return n };
 const TITLES = [[15, 'Moon-crowned'], [10, 'Keeper of the Hollow Keep'], [6, 'Warden'], [3, 'Lantern-bearer'], [1, 'Wanderer']];
 const titleOf = n => TITLES.find(([l]) => n >= l)[1];
+// What the level-up card says when a new title comes ({who} is the hero's name).
+const TITLE_LINE = { 'Lantern-bearer': '{who} carries the keep’s lantern now.', Warden: '{who} is a Warden of the keep now.',
+  'Keeper of the Hollow Keep': 'The keep calls {who} its Keeper now.', 'Moon-crowned': 'The ringed moon has noticed {who}.' };
+const LEVEL_LINE = ['The keep knows your name a little better.', 'Every candle counted. They all do.', 'A little more renown, gently earned.', 'The windows seem warmer for it.'];
 const isTest = () => nat('isTestBuild') === true;
 const speed = () => isTest() && S.fast ? 12 : 1; // test builds can run journeys 12 times faster
 
 /* ---------- saved state ---------- */
 const KEY = 'taskbound.v1';
-function fresh() { return { v: 1, tasks: [], nextId: 1, embers: 0, silver: 0, prov: PROV_START, woken: 0, offered: 0, day: isoDay(), dayEmbers: 0, dayProv: 0, askedNotify: false, journey: null, pick: 'garden', fast: false, owned: [], wear: {}, stall: 'keep', rem: cleanRem(), cfg: cleanCfg(), lists: [], exactTip: false, hero: cleanHero({}), met: false, satchel: [], renown: 0, tut: '' } }
+function fresh() { return { v: 1, tasks: [], nextId: 1, embers: 0, silver: 0, prov: PROV_START, woken: 0, offered: 0, day: isoDay(), dayEmbers: 0, dayProv: 0, askedNotify: false, journey: null, pick: 'garden', fast: false, owned: [], wear: {}, stall: 'keep', rem: cleanRem(), cfg: cleanCfg(), lists: [], exactTip: false, hero: cleanHero({}), met: false, satchel: [], renown: 0, lvSeen: 1, tut: '' } }
 // Checks a save field by field, so a damaged or older save still loads. Never rename or drop a field without handling it here.
 function cleanState(o) {
   const f = fresh(); if (!o || typeof o !== 'object') return f;
@@ -211,6 +227,8 @@ function cleanState(o) {
     renown: Number.isFinite(+o.renown) && o.renown !== null && o.renown !== '' ? num(o.renown, 0) : num(o.embers, 0) + num(o.offered, 0) + ROOMS.slice(0, num(o.woken, 0, 0, ROOMS.length)).reduce((a, r) => a + r[1], 0),
     lists: [...new Set((Array.isArray(o.lists) ? o.lists : []).map(listKey).filter(Boolean))].slice(0, 40)
   };
+  // The highest Renown level already celebrated (the level-up card). Came later: an older save counts its level as seen.
+  s.lvSeen = Number.isFinite(+o.lvSeen) && o.lvSeen !== null && o.lvSeen !== '' ? num(o.lvSeen, 1, 1, 999) : renownLevel(s.renown);
   // Only gear the knight owns can be worn, in its own slot.
   if (o.wear && typeof o.wear === 'object') SLOTS.forEach(([k]) => { const g = ITEM_BY[o.wear[k]]; if (g && g.slot === k && s.owned.includes(g.id)) s.wear[k] = g.id });
   (Array.isArray(o.tasks) ? o.tasks : []).forEach(t => {
@@ -424,14 +442,14 @@ function setTab(t) {
   if (t === 'market') renderMarket();
   if (S.tut) tutShow();
 }
-function renderStores() { $('#n-embers').textContent = S.embers; $('#n-silver').textContent = S.silver; $('#n-prov').textContent = S.prov }
+function renderStores() { $('#n-embers').textContent = S.embers; $('#n-silver').textContent = S.silver; $('#n-prov').textContent = S.prov; $('#lv-dot').hidden = !lvWaiting() }
 
 function renderKeep() {
   renderStores();
   // the sculpted keep you can turn ; the flat painting until then, or where it can't be drawn
   if (!ART.keep3d($('#keep-scene'), S.woken)) $('#keep-scene').innerHTML = ART.keep(S.woken);
   $('#rooms-count').textContent = `${S.woken} of ${ROOMS.length} rooms`;
-  renderHero();
+  renderHero(); setTimeout(checkLevelUp, 400);
   // Each lit window is a way into its room; the dark ones are only pictures.
   $('#arches').innerHTML = ROOMS.map(([name], i) => i < S.woken
     ? `<button type="button" data-room="${i}" aria-label="Go into ${esc(name)}">${ART.arch('lit', furnishedIn(i))}</button>`
@@ -483,11 +501,11 @@ function openRoom(r) {
   if (!(r >= 0 && r < S.woken)) return;
   roomOpen = r; renderRoom();
   const el = $('#room'); el.hidden = false; el.scrollTop = 0; $('#close-room').focus();
-  if (r === 0 && (S.tut === 'gate' || S.tut === 'home')) tutShow();
+  if (S.tut) tutShow();
 }
 function closeRoom(focus = true) {
   const r = roomOpen; roomOpen = null; $('#room').hidden = true;
-  if (S.tut === 'gate' || S.tut === 'home') coach('');
+  if (S.tut) tutShow();
   if (!focus) return;
   renderAll(); const b = $(`#s-${tab} [data-room="${r}"]`); if (b) b.focus();
 }
@@ -533,7 +551,7 @@ function renderMarket() {
     const tg = tryOn && ITEM_BY[tryOn], look = tg ? Object.assign({}, S.wear, { [tg.slot]: tg.id }) : S.wear;
     h += `<section class="worn" aria-label="What ${esc(who())} wears"><span class="knight">${picTag(fig(S.hero, look), 11, esc(who()) + (tg ? ', trying on ' + esc(itemName(tg)) : ''))}</span><div>
       ${tg ? `<span class="ember try-on">Trying on ${esc(itemName(tg))}</span>` : ''}
-      ${SLOTS.map(([k, label]) => `<span><span class="muted">${label.replace(/s$/, '')}</span> · ${S.wear[k] ? esc(itemName(ITEM_BY[S.wear[k]])) : 'nothing yet'}</span>`).join('')}
+      ${SLOTS.map(([k, label]) => `<span><span class="muted">${label.replace(/s$/, '')}</span> · ${esc(S.wear[k] || k === 'weapon' ? wornName(k) : lower(wornName(k)))}</span>`).join('')}
       <b class="ember">${sum || 'Gear helps on journeys.'}</b></div></section>`;
     SLOTS.forEach(([k, label, what]) => {
       h += `<h2 class="group-h ware-h">${label}: ${what}</h2><ul>`;
@@ -818,7 +836,7 @@ function fmtLeft(ms) {
 function fmtLength(sec) { const m = Math.max(1, Math.round(sec / 60)), h = Math.floor(m / 60), r = m % 60; return h ? plural(h, 'hour') + (r ? ' ' + r + ' min' : '') : m + ' min' }
 // The places on the chart, labelled with their length as the worn gear makes it.
 const chartPlaces = () => JOURNEYS.map(d => ({ ...d, len: fmtLength(trip(d).sec) }));
-function renderBackDot() { $('#back-dot').hidden = !isBack(); $('#back-dot .sr').textContent = ` (${who()} is back)` }
+function renderBackDot() { $('#back-dot').hidden = !isBack(); $('#back-dot .sr').textContent = ` (${who()} is back)`; $('#lv-dot').hidden = !lvWaiting() }
 function renderJourneys() {
   renderBackDot();
   const j = S.journey, now = Date.now(), away = j && !isBack(), back = isBack();
@@ -830,7 +848,7 @@ function renderJourneys() {
   const d = JOURNEY_BY[sel], card = $('#dest');
   if (back) {
     card.innerHTML = `<div class="row-between"><h2 class="title">${esc(who())} is home</h2><span class="eyebrow">Ring ${d.ring}</span></div>
-      <p class="muted">Back from ${esc(d.name.replace(/^The /, 'the '))} with ${plural(j.silver, 'piece')} of silver${j.back ? (j.found ? ', ' : ' and ') + plural(j.back, 'provision') : ''}${j.found ? ' and ' + esc(lower(FOUND_BY[j.found].name)) : ''}.</p>
+      <div class="dest-who">${destHero('raise')}<div><p class="muted">Back from ${esc(d.name.replace(/^The /, 'the '))} with ${plural(j.silver, 'piece')} of silver${j.back ? (j.found ? ', ' : ' and ') + plural(j.back, 'provision') : ''}${j.found ? ' and ' + esc(lower(FOUND_BY[j.found].name)) : ''}.</p></div></div>
       <div class="dest-row"><span></span><button type="button" class="ember-btn" data-act="collect">Collect ${j.silver} silver</button></div>`;
   } else if (away) {
     card.innerHTML = `<div class="row-between"><h2 class="title">${esc(d.name)}</h2><span class="eyebrow">Ring ${d.ring}</span></div>
@@ -839,15 +857,18 @@ function renderJourneys() {
   } else {
     const short = S.prov < d.prov, t = trip(d), worn = SLOTS.map(([k]) => ITEM_BY[S.wear[k]]).filter(Boolean);
     card.innerHTML = `<div class="row-between"><h2 class="title">${esc(d.name)}</h2><span class="eyebrow">Ring ${d.ring}</span></div>
-      <p class="muted">${esc(d.tale.replace('{who}', who()))}</p>
+      <div class="dest-who">${destHero('rest')}<div><p class="muted">${esc(d.tale.replace('{who}', who()))}</p></div></div>
       <div class="dest-row"><span>${fmtLength(t.sec)} · ${plural(d.prov, 'provision')} · <b class="ember">earns ${t.silver} silver</b>${t.back ? ` · ${plural(t.back, 'provision')} home` : ''}</span>
       <button type="button" class="ember-btn" data-act="send"${short ? ' disabled' : ''}>Send</button></div>
       ${short ? `<p class="muted small">${S.prov ? `Needs ${plural(d.prov, 'provision')}; you have ${S.prov}.` : 'Lighting candles packs provisions.'}</p>` : ''}
       ${worn.length ? `<p class="muted small" id="gear-line">With ${worn.map(g => esc(lower(g.name))).join(', ')}.</p>` : ''}
+      <p class="muted small" id="gift-line"><b>${esc(gift()[0])}:</b> ${esc(gift()[1])}.</p>
       ${satchelLine()}`;
   }
   const fw = $('#fast-wrap'); fw.hidden = !isTest(); $('#fast').checked = !!S.fast;
 }
+// The hero, larger than on Home, standing in the card while they are home (raising their weapon when back with silver).
+const destHero = pose => picTag(fig(S.hero, S.wear, pose), 14, `${esc(who())} the ${heroWord()}`, 'dest-hero');
 // The satchel: the found thing that goes with the next journey, and how many more wait.
 function satchelLine() {
   const f = FOUND_BY[S.satchel[0]]; if (!f) return '';
@@ -870,7 +891,7 @@ function tickJourneys() {
 function sendJourney() {
   const d = JOURNEY_BY[S.pick]; if (S.journey || !d || S.prov < d.prov) return;
   const now = Date.now(), t = trip(d), used = S.satchel[0] || null;
-  const found = S.satchel.length - (used ? 1 : 0) < SATCHEL_MAX && Math.random() < FIND_CHANCE[d.id] ? FOUND[Math.floor(Math.random() * FOUND.length)].id : null;
+  const found = S.satchel.length - (used ? 1 : 0) < SATCHEL_MAX && Math.random() < findChance(d) ? FOUND[Math.floor(Math.random() * FOUND.length)].id : null;
   if (used) S.satchel.shift();
   S.prov -= d.prov; S.journey = { id: d.id, start: now, end: now + t.sec * 1000 / speed(), silver: t.silver, back: t.back, found, used };
   save(); renderStores(); renderJourneys();
@@ -948,9 +969,14 @@ function repPhrase(rep) {
 function castWell() {
   const xs = wellItems($('#well-in').value, wellUndone), keep = xs.filter(x => !x.dup), skipped = xs.filter(x => x.dup && !x.p.done).length;
   if (!keep.length) return;
-  const r = commit(keep.map(x => x.p)); wellUndone.clear(); $('#well-in').value = ''; closeWell();
+  const r = commit(keep.map(x => x.p)); wellUndone.clear(); $('#well-in').value = '';
+  // The first minute moves on before the well closes, so no other card shows in between. If every line was already done
+  // (so already lit), there is no candle left to light, and it goes straight on to waking the keep.
+  const tw = S.tut === 'well';
+  if (tw) { S.tut = S.tasks.some(t => !t.doneOn) ? 'candle' : 'wake'; save() }
+  closeWell();
   setTab('tasks'); toast(commitText(r) + (skipped ? ` Skipped ${skipped} already on your list.` : ''), r.undo);
-  tutNext('well');
+  if (tw) { tutWait = true; setTimeout(tutGo, S.tut === 'wake' ? 1200 : 300) }
 }
 // Quick add: one line (Pawgress's qaAdd). It adds even if the same candle is already there, as Pawgress does.
 function quickAdd(raw) {
@@ -1176,7 +1202,9 @@ function renderHero() {
   $('#renown-n').textContent = 'Renown ' + lv;
   $('#renown').setAttribute('aria-label', `Renown ${lv}, ${S.renown - at} of ${nextAt - at} to the next`);
   $('#hero-say').textContent = '“' + heroLine() + '”';
-  heroCtl = ART.hero3d($('#hero-art'), fig(), { s: 12, px: 3, label: `${who()} the ${heroWord()}. Drag to turn; tap for more.` });
+  // the keep comes first on Home: on short or narrow phones the hero stands smaller (decided once, as the figure is made)
+  const sm = innerHeight < 720 || innerWidth < 360; $('#s-keep').classList.toggle('hero-sm', sm);
+  heroCtl = ART.hero3d($('#hero-art'), fig(), { s: sm ? 9 : 12, px: 3, label: `${who()} the ${heroWord()}. Drag to turn; tap for more.` });
   spot.setAttribute('aria-label', `${who()} the ${heroWord()}, ${titleOf(lv)}`);
   if (heroCtl && S.renown > heroSeen) heroCtl.raise(1800);
   heroSeen = S.renown;
@@ -1188,14 +1216,44 @@ function openHero() {
   $('#hs-name').textContent = who();
   $('#hs-bar').style.width = Math.round((S.renown - at) / Math.max(1, nextAt - at) * 100) + '%';
   $('#hs-renown').textContent = `Renown ${lv} · ${S.renown - at} of ${nextAt - at}`;
-  $('#hs-worn').innerHTML = SLOTS.map(([k, label]) => { const g = ITEM_BY[S.wear[k]], C = CALLING[S.hero.cls];
-    const start = k === 'weapon' ? C.weapons.find(([w]) => w === S.hero.weapon)[1] : k === 'armour' ? 'What you set out in' : 'Nothing yet';
-    return `<li><div><span class="name">${g ? esc(itemName(g)) : esc(start)}</span><span class="meta">${g ? esc(cap(gearText(g))) : k === 'trinket' ? 'From the Market' : 'Your first kit'}</span></div><span class="muted">${label.replace(/s$/, '')}</span></li>` }).join('');
+  $('#hs-gift').innerHTML = `<b>${esc(gift()[0])}.</b> ${esc(cap(gift()[1]))}.`;
+  $('#hs-worn').innerHTML = SLOTS.map(([k, label]) => { const g = ITEM_BY[S.wear[k]];
+    return `<li><div><span class="name">${esc(wornName(k))}</span><span class="meta">${g ? esc(cap(gearText(g))) : k === 'trinket' ? 'From the Market' : 'Your first kit'}</span></div><span class="muted">${label.replace(/s$/, '')}</span></li>` }).join('');
   el.hidden = false; $('#app').setAttribute('aria-hidden', 'true');
   sheetCtl = ART.hero3d($('#hs-art'), fig(), { s: 22, px: 3, label: `${who()} the ${heroWord()}. Drag to turn.` });
   setTimeout(() => $('#close-hero').focus(), 30);
 }
 function closeHero(focus = true) { $('#herosheet').hidden = true; $('#app').removeAttribute('aria-hidden'); if (focus) { const b = $('#hero-spot'); if (b) b.focus() } }
+
+/* ---------- a new level of Renown ---------- */
+/* game-loop.md, "Renown": each new level is shown off once, the next time you come Home (a dot on the Keep rune says one
+   is waiting): the hero raises their weapon in rising embers, with the new title if one came. Never in the first minute,
+   and never over another sheet. S.lvSeen is the highest level already shown; Undo can take Renown back, never this. */
+const lvWaiting = () => !S.tut && S.met && renownLevel(S.renown) > S.lvSeen;
+let luCtl = null, luFrom = null;
+function checkLevelUp() {
+  if (!lvWaiting() || tab !== 'keep' || !$('#levelup').hidden) return;
+  if (['#first', '#well', '#edit', '#room', '#herosheet', '#settings'].some(id => !$(id).hidden)) return;
+  const was = S.lvSeen, lv = renownLevel(S.renown), at = renownAt(lv), nextAt = renownAt(lv + 1);
+  const t = titleOf(lv), gained = t !== titleOf(was), ahead = TITLES.slice().reverse().find(([l]) => l > lv);
+  $('#lu-eyebrow').textContent = gained ? `Renown ${lv} · a new title` : `${who()} grows in renown`;
+  $('#lu-h').textContent = gained ? t : `Renown ${lv}`;
+  $('#lu-line').textContent = gained ? TITLE_LINE[t].replace('{who}', who()) : LEVEL_LINE[lv % LEVEL_LINE.length];
+  $('#lu-bar').style.width = Math.round((S.renown - at) / Math.max(1, nextAt - at) * 100) + '%';
+  $('#lu-n').textContent = `Renown ${lv} · ${S.renown - at} of ${nextAt - at}`;
+  $('#lu-next').textContent = ahead ? `Next title: ${ahead[1]}, at Renown ${ahead[0]}.` : 'Renown keeps growing. There is no end to it, and no hurry.';
+  $('#lu-sparks').innerHTML = Array.from({ length: 22 }, (_, i) => `<i style="left:${(i * 37 % 100)}%;--d:${(2.4 + (i * 7 % 10) / 5).toFixed(1)}s;--w:${((i * 13 % 20) / 10).toFixed(1)}s;--x:${(i % 2 ? 1 : -1) * (i * 11 % 40)}px"></i>`).join('');
+  S.lvSeen = lv; save(); renderBackDot();
+  luFrom = document.activeElement;
+  $('#levelup').hidden = false; $('#app').setAttribute('aria-hidden', 'true');
+  luCtl = ART.hero3d($('#lu-art'), fig(S.hero, S.wear, 'raise'), { s: 20, px: 3, label: `${who()} the ${heroWord()}, ${t}. Drag to turn.` });
+  setTimeout(() => $('#lu-go').focus(), 30);
+}
+function closeLevelUp() {
+  $('#levelup').hidden = true; $('#app').removeAttribute('aria-hidden');
+  if (luFrom && luFrom.focus && document.contains(luFrom)) luFrom.focus();
+}
+$('#lu-go').addEventListener('click', closeLevelUp);
 
 /* ---------- the creator, and the first minute ---------- */
 /* game-loop.md, "Who you are, gear and the first minute". A first start: the keep asleep, then calling, look and kit,
@@ -1229,8 +1287,9 @@ function showCreator() {
     ${picTag(fig(draft, {}), 22, 'The ' + C.name.toLowerCase(), 'cr-big')}
     <button type="button" class="sm-btn cr-turn" data-cr="next-cls" aria-label="The next calling">›</button></div>
     <h2 class="title center">${C.name}</h2><p class="first-lead center">${esc(C.line)}</p>
+    <p class="cr-gift center"><b>Gift: ${esc(C.gift[0])}.</b> ${esc(cap(C.gift[1]))}.</p>
     <div class="cr-chips four" role="group" aria-label="Callings">${HERO.map(([k, nm]) => chip('cls', k, nm, draft.cls === k)).join('')}</div>
-    <p class="fine center">Each calling has its own look, kit and gear at the Market.</p>
+    <p class="fine center">Each calling has its own look, kit, gift and gear at the Market.</p>
     <div class="first-go row">${back}<button type="button" class="ember-btn tall" data-cr="next">Next: your look</button></div></div>`;
   else if (step === 'look') h = `<div class="first-page cr">${crumbs}<h1 class="title" id="first-h" tabindex="-1">Your look</h1>
     <div class="cr-stage" id="cr-turn"></div><p class="fine center">Drag to turn.</p>
@@ -1276,7 +1335,7 @@ function creatorAct(b) {
     save(); closeCreator(); renderAll();
     if (first) tutGo();
     else if (cr0 === 'again') toast(`Welcome back, ${who()}.`);
-    else toast(was === S.hero.cls ? 'Your look is saved.' : `${who()} the ${heroWord()} is ready. Gear keeps working the same.`);
+    else toast(was === S.hero.cls ? 'Your look is saved.' : `${who()} the ${heroWord()} is ready, with the gift ${gift()[0]}. Gear keeps working the same.`);
   }
 }
 function closeCreator() { $('#first').hidden = true; $('#app').removeAttribute('aria-hidden'); cr = null; if (!$('#herosheet').hidden) closeHero(false) }
@@ -1286,9 +1345,22 @@ const TUT_SAMPLE = 'reply to sam\nbins out friday 6pm\ndid the washing up';
 function coach(html, where = 'bottom', act = '') {
   const el = $('#coach'); el.className = 'tour at-' + where; el.hidden = !html; document.body.classList.toggle('touring', !!html);
   el.innerHTML = html ? `<p>${html}</p><div class="tour-go">${act}<button type="button" class="linkbtn" data-tut="skip">Skip the tour</button></div>` : '';
+  // In the well the card stands where the heading was, so it covers nothing you need (the heading hides while it shows).
+  const w = $('#well'), inWell = !!html && where === 'well';
+  w.classList.toggle('coached', inWell);
+  if (inWell) w.style.setProperty('--coach-h', el.offsetHeight + 'px');
+  $('#renown').classList.toggle('tour-glow', !!html && S.tut === 'renown');
+  // The Renown card stands next to the bar it is about: below it if there is room above the runes, else above it.
+  el.style.top = el.style.bottom = '';
+  if (html && where === 'renown') {
+    const r = $('#renown').getBoundingClientRect(), nav = $('.runes').getBoundingClientRect().top, h = el.offsetHeight;
+    el.style.top = Math.max(8, r.bottom + 14 + h <= nav - 8 ? r.bottom + 14 : r.top - 14 - h) + 'px';
+  }
 }
 // Takes you to the screen for the tutorial's step, then shows its card.
+let tutWait = false; // a step has just moved on and its screen is about to open: no "Carry on" card meanwhile
 function tutGo() {
+  tutWait = false;
   const t = S.tut;
   if (!t) return coach('');
   if (t === 'well') { if (tab !== 'tasks') setTab('tasks'); if ($('#well').hidden) openWell($('#well-in').value || TUT_SAMPLE) }
@@ -1296,27 +1368,32 @@ function tutGo() {
   else if (t === 'wake') {
     if (!S.woken && S.embers < ROOMS[0][1] - S.offered) { S.embers = ROOMS[0][1] - S.offered; save(); renderStores() } // the keep makes up the rest, this once
     if (tab !== 'keep') setTab('keep'); else renderKeep();
-  } else if (roomOpen !== 0) { if (S.woken) openRoom(0); else { S.tut = ''; save() } }
+  } else if (t === 'renown') { if (roomOpen != null) closeRoom(false); if (tab !== 'keep') setTab('keep'); else renderKeep() }
+  else if (roomOpen !== 0) { if (S.woken) openRoom(0); else { S.tut = ''; save() } }
   tutShow();
 }
-// The card for the tutorial's step, where it belongs; hidden elsewhere.
+// The card for the tutorial's step, where it belongs. Anywhere else, a small card offers to pick up where it was.
 function tutShow() {
   const t = S.tut, wellOpen = !$('#well').hidden, roomIn = roomOpen === 0;
   if (t === 'well' && wellOpen) coach('<b>Empty your head.</b> One thing per line. We’ve started you off: add anything on your mind, then cast it in.', 'well');
   else if (t === 'candle' && tab === 'tasks' && !wellOpen) coach('<b>Tap a candle to light it.</b> Start with the smallest. Lighting a candle finishes a task and sends embers to the keep.', 'top');
-  else if (t === 'wake' && tab === 'keep' && !roomIn) coach('<b>You have enough.</b> Offer the embers and the Gatehouse wakes.', 'home');
+  else if (t === 'wake' && tab === 'keep' && !roomIn && !wellOpen) coach('<b>You have enough.</b> Offer the embers and the Gatehouse wakes.', 'home');
   else if (t === 'gate' && roomIn) coach('<b>It’s cold in here.</b> The keep kept a few things for you. Put them in place and make it a home.', 'room', '<button type="button" class="ember-btn" data-tut="gifts">Put them in place</button>');
   else if (t === 'home' && roomIn) coach('<b>Lived in.</b> The Gatehouse is home. Every candle you light wakes a little more of the keep.', 'room', '<button type="button" class="ember-btn" data-tut="end">To the keep</button>');
+  else if (t === 'renown' && tab === 'keep' && roomOpen == null && !wellOpen) coach(`<b>Renown.</b> Every ember you earn adds to ${esc(who())}’s renown, and it never goes down. Each new level is marked, and new titles come as it grows.`, 'renown', '<button type="button" class="ember-btn" data-tut="done">Begin</button>');
+  else if (t && !wellOpen && !tutWait) coach('<b>The first minute is waiting.</b> Pick up where you left off whenever you like.', 'top', '<button type="button" class="ember-btn" data-tut="go">Carry on</button>');
   else coach('');
 }
 function tutAct(b) {
   const a = b.dataset.tut;
-  if (a === 'skip') { S.tut = ''; save(); coach(''); return }
+  if (a === 'skip') { S.tut = ''; S.lvSeen = renownLevel(S.renown); save(); coach(''); return }
+  if (a === 'go') { tutGo(); return }
   if (a === 'gifts') { FURNISH[0].forEach(f => { if (!S.owned.includes(f.id)) S.owned.push(f.id) }); S.tut = 'home'; save(); renderRoom(); tutShow(); return }
-  if (a === 'end') { S.tut = ''; save(); coach(''); closeRoom(); setTab('keep'); toast(`Welcome, ${who()}. The keep is listening.`) }
+  if (a === 'end') { S.tut = 'renown'; save(); closeRoom(false); setTab('keep'); return }
+  if (a === 'done') { S.tut = ''; S.lvSeen = renownLevel(S.renown); save(); coach(''); renderAll(); toast(`Welcome, ${who()}. The keep is listening.`) }
 }
 // moving the tutorial on when its step is done
-function tutNext(from) { if (S.tut !== from) return; S.tut = TUT[TUT.indexOf(from) + 1]; save(); setTimeout(tutGo, from === 'candle' ? 1200 : 300) }
+function tutNext(from) { if (S.tut !== from) return; S.tut = TUT[TUT.indexOf(from) + 1]; save(); tutWait = true; setTimeout(tutGo, from === 'candle' ? 1200 : 300) }
 
 /* ---------- toast ---------- */
 let toastT = null;
@@ -1406,6 +1483,7 @@ $('#well-go').addEventListener('click', castWell);
 $('#well-speak').addEventListener('click', () => nat('speak'));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (!$('#levelup').hidden) { closeLevelUp(); return }
   if (!$('#first').hidden) { if (cr && crSteps(cr.mode).indexOf(cr.step) > 0) creatorAct({ dataset: { cr: 'back' } }); else if (cr && cr.mode === 'edit') closeCreator(); return }
   if (!$('#herosheet').hidden) { closeHero(); return }
   if (e.target.id === 'list-in') { listNew = false; renderTasks(); const a = $('#lists [data-act="list-new"]'); if (a) a.focus() }
@@ -1418,7 +1496,7 @@ $('#close-settings').addEventListener('click', closeSettings);
 
 /* ---------- the Android shell (all optional) ---------- */
 window.__share = text => addToWell(text); // shared text and speech join what is already in the well
-window.__back = () => { if (!$('#first').hidden) { if (cr && crSteps(cr.mode).indexOf(cr.step) > 0) creatorAct({ dataset: { cr: 'back' } }); else if (cr && cr.mode === 'edit') closeCreator(); return true } if (!$('#herosheet').hidden) { closeHero(); return true } if (!$('#room').hidden) { closeRoom(); return true } if (!$('#settings').hidden) { closeSettings(); return true } if (!$('#edit').hidden) { closeEdit(); return true } if (!$('#well').hidden) { closeWell(); return true } if (sel) { sel = null; renderTasks(); return true } if (openTask) { openTask = null; renderTasks(); return true } if (tab !== 'keep') { setTab('keep'); return true } return false };
+window.__back = () => { if (!$('#levelup').hidden) { closeLevelUp(); return true } if (!$('#first').hidden) { if (cr && crSteps(cr.mode).indexOf(cr.step) > 0) creatorAct({ dataset: { cr: 'back' } }); else if (cr && cr.mode === 'edit') closeCreator(); return true } if (!$('#herosheet').hidden) { closeHero(); return true } if (!$('#room').hidden) { closeRoom(); return true } if (!$('#settings').hidden) { closeSettings(); return true } if (!$('#edit').hidden) { closeEdit(); return true } if (!$('#well').hidden) { closeWell(); return true } if (sel) { sel = null; renderTasks(); return true } if (openTask) { openTask = null; renderTasks(); return true } if (tab !== 'keep') { setTab('keep'); return true } return false };
 window.__act = a => { if (a === 'add' || a === 'offload' || a === 'dump') openWell(); else if (a === 'tasks') setTab('tasks'); else if (a === 'journeys') setTab('journeys'); else if (a === 'speak') nat('speak') };
 window.addEventListener('taskbound-notify-changed', () => { planSig = ''; syncReminders(); if (tab === 'tasks') renderTasks(); if (!$('#settings').hidden) renderSettings() });
 document.addEventListener('visibilitychange', () => {

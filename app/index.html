@@ -86,7 +86,7 @@
 
   <nav class="runes" aria-label="Main">
     <span class="rail" aria-hidden="true"></span>
-    <button type="button" class="rune" data-tab="keep"><span class="dia" data-rune="keep"></span>Keep</button>
+    <button type="button" class="rune" data-tab="keep"><span class="dia" data-rune="keep"></span>Keep<span class="back-dot" id="lv-dot" hidden><span class="sr"> (new renown)</span></span></button>
     <button type="button" class="rune" data-tab="tasks"><span class="dia" data-rune="tasks"></span>Tasks</button>
     <button type="button" class="sigil" id="open-well" aria-label="Offload"><span data-icon="sigil"></span>Offload</button>
     <button type="button" class="rune" data-tab="journeys"><span class="dia" data-rune="journeys"></span>Journeys<span class="back-dot" id="back-dot" hidden><span class="sr"> (back)</span></span></button>
@@ -203,6 +203,8 @@
     <p class="eyebrow" id="hs-eyebrow"></p>
     <h1 id="hs-name" class="title"></h1>
     <div class="renown wide"><span class="renown-bar"><span id="hs-bar"></span></span><span id="hs-renown"></span></div>
+    <h2 class="eyebrow room-count">Their gift</h2>
+    <p class="hs-gift" id="hs-gift"></p>
     <h2 class="eyebrow room-count">Worn</h2>
     <ul class="in-room hs-worn" id="hs-worn"></ul>
     <div class="room-end"><button type="button" class="ember-btn" data-act="look">Change your look</button></div>
@@ -225,6 +227,20 @@
 <!-- The creator: on the first start (welcome, calling, look, kit) and from the hero's sheet (game-loop.md) -->
 <div class="first-sheet" id="first" role="dialog" aria-modal="true" aria-labelledby="first-h" hidden>
   <div id="first-body" class="first-body"></div>
+</div>
+
+<!-- A new level of Renown, shown off when you next come Home (game-loop.md, "Renown") -->
+<div class="levelup" id="levelup" role="dialog" aria-modal="true" aria-labelledby="lu-h" hidden>
+  <div class="lu-sparks" id="lu-sparks" aria-hidden="true"></div>
+  <div class="lu-body">
+    <p class="eyebrow center" id="lu-eyebrow"></p>
+    <div class="lu-stage"><span class="hero-glow" aria-hidden="true"></span><div id="lu-art"></div></div>
+    <h2 class="title center" id="lu-h"></h2>
+    <p class="center lu-line" id="lu-line"></p>
+    <div class="renown wide lu-bar"><span class="renown-bar"><span id="lu-bar"></span></span><span id="lu-n"></span></div>
+    <p class="fine center" id="lu-next"></p>
+    <button type="button" class="ember-btn tall" id="lu-go">Onwards</button>
+  </div>
 </div>
 
 <!-- The first minute's coach: one card at a time on the real screens -->

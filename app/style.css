@@ -187,6 +187,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .dest .muted.small { font-size: 13px }
 .dest b { color: var(--bone) }
 .dest .ember { color: var(--ember) }
+.dest-who { display: flex; align-items: flex-end; gap: 14px }
+.dest-who > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px }
+.dest-who p { margin: 0 }
+.dest-hero { flex: none; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5)) }
 .dest-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px }
 .dest-row .ember-btn { flex: none; height: 46px; padding: 0 22px }
 .bar { height: 8px; background: var(--sky-track) }
@@ -486,14 +490,15 @@ select.set-in { min-width: 160px }
 
 /* ---------- the hero (look.md, "The hero on Home"; "Four callings that read apart") ---------- */
 .hero-pic, .hero3d { image-rendering: pixelated; display: block }
-.hero-spot { position: absolute; z-index: 1; bottom: calc(100% - 6px); left: 2px; padding: 0; border: 0; background: none; line-height: 0; cursor: grab }
+.hero-spot { position: absolute; z-index: 1; bottom: calc(100% - 6px); left: 8px; padding: 0; border: 0; background: none; line-height: 0; cursor: grab }
 .hero-spot:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px }
 .hero-glow { position: absolute; left: 12%; right: 12%; bottom: 14px; height: 26px; border-radius: 50%; background: radial-gradient(ellipse, var(--ember-glow), transparent 70%); pointer-events: none }
 .hero-say { position: absolute; z-index: 1; bottom: calc(100% + 76px); left: 104px; max-width: min(200px, calc(100% - 120px)); margin: 0; padding: 9px 11px; font-size: 14px; font-style: italic; line-height: 1.35; color: var(--bone); background: var(--panel); box-shadow: inset 0 0 0 1px var(--edge); clip-path: var(--cut-sm); pointer-events: none }
-.who-row { align-items: baseline }
-.who { display: flex; align-items: baseline; gap: 10px; min-width: 0 }
-.who .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-.who-title { color: var(--ink-gilt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.who-row { align-items: baseline; flex-wrap: wrap; row-gap: 4px }
+.who-row .who { flex: 1 1 auto }
+.who { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 0; min-width: 0 }
+.who .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100% }
+.who-title { color: var(--ink-gilt); white-space: nowrap }
 .renown { flex: none; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); white-space: nowrap }
 .renown-bar { display: block; width: 56px; height: 6px; background: var(--step-off); overflow: hidden }
 .renown-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--flame-deep), var(--ember), var(--step-on-edge)) }
@@ -540,12 +545,40 @@ select.set-in { min-width: 160px }
 .tour b { color: var(--card-name-on) }
 .tour-go { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 6px }
 .tour-go .linkbtn { color: var(--muted); font-size: 14px; margin-left: auto }
-.tour-go .ember-btn { flex: 1 1 100% }
-.tour.at-well { top: calc(52px + env(safe-area-inset-top)) }
+.tour-go .ember-btn { flex: 1 1 100%; height: 46px }
+.tour.at-well { top: calc(70px + env(safe-area-inset-top)) }
+/* While the first minute's card shows in the well, it stands where the heading was (the heading hides) */
+.well-sheet.coached > #well-h, .well-sheet.coached > #well-h + .muted { display: none }
+.well-sheet.coached > .well-top { margin-bottom: calc(var(--coach-h, 140px) + 22px) }
+/* The Renown step points at the bar */
+.renown.tour-glow { outline: 1px solid var(--ember); outline-offset: 5px; box-shadow: 0 0 14px var(--ember-glow) }
 .tour.at-top { bottom: calc(var(--nav-h) + 12px) }
 .tour.at-home { top: calc(176px + env(safe-area-inset-top)) }
 .tour.at-room { bottom: calc(14px + env(safe-area-inset-bottom)) }
+.tour.at-renown { top: 0 }
+.cr-gift { margin: 0; font-size: 14px; color: var(--muted) }
+.cr-gift b, .hs-gift b { color: var(--ink-gilt) }
+.hs-gift { margin: 0 0 6px; font-size: 15px; line-height: 1.45 }
 .touring .hero-say { display: none }
+/* A new level of Renown: the hero raises their weapon in a shower of rising embers */
+.levelup { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 42%, #4a1c14, #1c0a0c 55%, var(--void) 80%); overflow: hidden }
+.lu-body { position: relative; width: 100%; max-width: 380px; display: flex; flex-direction: column; align-items: center; gap: 10px }
+.lu-stage { position: relative; display: flex; justify-content: center; min-height: 200px }
+.lu-stage .hero-glow { left: 18%; right: 18%; bottom: 10px; height: 34px }
+.levelup .title { font-size: 40px; line-height: 1.05; color: var(--ink-gilt); text-shadow: 0 0 18px var(--ember-glow) }
+.lu-line { margin: 0; color: var(--bone); font-size: 16px; line-height: 1.45 }
+.lu-bar { align-self: stretch }
+.levelup .ember-btn { align-self: stretch; margin-top: 8px; height: 50px; flex: none }
+.lu-sparks { position: absolute; inset: 0; pointer-events: none }
+.lu-sparks i { position: absolute; bottom: -12px; width: 4px; height: 4px; background: var(--ember); box-shadow: 0 0 6px var(--ember); animation: lu-rise var(--d, 3s) linear var(--w, 0s) infinite; opacity: 0 }
+@keyframes lu-rise { 0% { transform: translate(0, 0); opacity: 0 } 10% { opacity: 1 } 80% { opacity: .8 } 100% { transform: translate(var(--x, 0), -105vh); opacity: 0 } }
+.levelup:not([hidden]) .lu-body { animation: lu-in .5s ease-out }
+@keyframes lu-in { from { transform: translateY(14px) scale(.96); opacity: 0 } to { transform: none; opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .lu-sparks { display: none } .levelup:not([hidden]) .lu-body { animation: none } }
+.runes .rune { position: relative }
+/* Short or narrow phones: a smaller hero on Home, so the keep keeps its room and the title stays clear */
+.hero-sm .hero-say { bottom: calc(100% + 54px); left: 82px }
+@media (max-height: 699px) { .hero-sm .hero-say { display: none } } /* too little sky for a line: the keep comes first */
 @media (max-width: 359px) {
   .hero-say { left: 92px; font-size: 13px }
   .renown-bar { width: 40px }
