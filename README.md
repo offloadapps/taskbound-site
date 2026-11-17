@@ -12,6 +12,7 @@ The website for Taskbound: a landing page, the privacy policy and the web versio
 | `app/` | The web version of Taskbound, copied from `offloadapps/taskbound` `dist/web`. |
 | `img/shots/` | Phone screenshots of the app (390 x 844 at 2x). |
 | `img/art/` | The four callings: a 16-frame turn (`hero-<calling>-turn.png`) and a still, drawn by the app's own `ART.heroPic` from `app/hero-splat.js` (taskbound `art/hero_splat_scene.js`). |
+| `img/og.jpg` | The link preview: the landing page's first screen at 1200 x 630. |
 | `fonts/` | Jacquard 24 (OFL), subset to Latin, for titles. |
 
 ## Updating the web version
@@ -21,3 +22,9 @@ numbered APK and then copies `dist/web` into `app/` here, committed as `Taskboun
 ("Web version: Taskbound <version>"). Ordinary pushes to taskbound don't touch the site. It uses the deploy key described
 in the taskbound README ("Builds, releases and the website"). Don't edit `app/` by hand: the next release replaces it.
 If the keep's sculpt changes, the landing page picks it up from `app/keep-splat.js` with no other change.
+
+## Updating the pictures
+
+`img/art/`, `img/shots/` and `img/og.jpg` are made from the app by `tools/site.js` in `offloadapps/taskbound`
+(`python3 tools/build.py && node tools/site.js ../taskbound-site`), then committed here. Remake them when the app's look
+changes, and check the alt texts in `index.html` still describe the shots.
