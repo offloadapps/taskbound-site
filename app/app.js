@@ -459,22 +459,26 @@ function renderKeep() {
   renderStores();
   // the sculpted keep you can turn ; the flat painting until then, or where it can't be drawn
   if (!ART.keep3d($('#keep-scene'), S.woken)) $('#keep-scene').innerHTML = ART.keep(S.woken);
-  $('#rooms-count').textContent = `${S.woken} of ${ROOMS.length} rooms`;
   renderHero(); setTimeout(checkLevelUp, 400);
   // Each lit window is a way into its room; the dark ones are only pictures.
   $('#arches').innerHTML = ROOMS.map(([name], i) => i < S.woken
     ? `<button type="button" data-room="${i}" aria-label="Go into ${esc(name)}">${ART.arch('lit', furnishedIn(i))}</button>`
     : `<span aria-hidden="true">${ART.arch(i === S.woken && S.offered ? 'part' : 'dark')}</span>`).join('');
-  const off = $('#offer');
-  if (S.woken >= ROOMS.length) { $('#relight-line').textContent = 'Every room is awake. The keep remembers everything.'; off.innerHTML = ''; return }
-  const [name, cost] = ROOMS[S.woken], need = cost - S.offered;
-  $('#relight-line').innerHTML = `${esc(cap(name))} ${S.offered ? 'stirs' : 'sleeps'}. <b>${plural(need, 'ember')}</b> will wake it.`;
-  // As in Pawgress's growing up: the button that finishes waking is always "Wake it".
-  const btns = [];
-  if (need > 1) btns.push([1, 'Offer 1']);
-  if (need > 5) btns.push([5, 'Offer 5']);
-  btns.push([need, 'Wake it, ' + need, true]);
-  off.innerHTML = btns.map(([n, l, main]) => `<button type="button" data-offer="${n}"${main ? ' class="main"' : ''}${S.embers < n ? ' disabled' : ''}>${l}</button>`).join('');
+  // The next room in one row (mockup "Taskbound: a calmer Home", A): its name, a bar of what is offered and what you
+  // could offer, and one button. It offers everything you have, up to what the room needs; the one that finishes is
+  // always "Wake it" (as Pawgress's growing up). Part offerings are kept.
+  const off = $('#offer'), done = S.woken >= ROOMS.length;
+  $('#meter').hidden = $('#next-arch').hidden = done;
+  if (done) { $('#relight-line').textContent = 'Every room is awake. The keep remembers everything.'; $('#next-n').textContent = ''; off.innerHTML = ''; return }
+  const [name, cost] = ROOMS[S.woken], need = cost - S.offered, give = Math.min(S.embers, need);
+  $('#next-arch').innerHTML = ART.arch(S.offered ? 'part' : 'dark');
+  $('#relight-line').innerHTML = `<b>${esc(cap(name))}</b> ${S.offered ? 'stirs' : 'sleeps'}`;
+  $('#meter-in').style.width = (S.offered / cost * 100) + '%';
+  $('#meter-have').style.width = ((S.offered + give) / cost * 100) + '%';
+  $('#meter').setAttribute('aria-label', `${S.offered} of ${cost} embers offered`);
+  $('#next-n').textContent = `${S.offered} of ${cost} embers` + (S.embers ? ` · you have ${S.embers}` : '. Light a candle for more.');
+  const [n, label] = give >= need ? [need, 'Wake it'] : give ? [give, 'Offer ' + give] : [1, 'Offer'];
+  off.innerHTML = `<button type="button" data-offer="${n}" class="main"${give ? '' : ' disabled'}>${label}</button>`;
 }
 const furnishedIn = r => FURNISH[r].filter(f => S.owned.includes(f.id)).length;
 

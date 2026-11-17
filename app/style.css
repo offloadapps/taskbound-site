@@ -80,22 +80,35 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .keep-top { pointer-events: none }
 .keep-top > * { pointer-events: auto }
 .keep-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: calc(22px + env(safe-area-inset-top)) 20px 0 }
-.keep-top .title { font-size: 34px; text-shadow: 0 2px 0 var(--void) }
-.stores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch }
+.keep-top .title { font-size: 30px; text-shadow: 0 2px 0 var(--void) }
+/* The three stores in one strip beside the gear (mockup "Taskbound: a calmer Home", A) */
+.stores { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; align-items: stretch; background: var(--void); border: 1px solid var(--wine) }
 /* Stores on home: just the number and its sign, centred in pills of one width, so they cover little of the keep */
-.stores li { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 64px; height: 28px; padding: 0 8px; background: var(--void); border: 1px solid var(--wine) }
+.stores li { display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 9px }
+.stores li + li { border-left: 1px solid var(--wine) }
 .stores b { font-size: 14px; line-height: 1; color: var(--bone); font-variant-numeric: tabular-nums }
 .stores [data-art] { width: 14px; height: 16px; flex: none; display: flex; align-items: center; justify-content: center }
 .stores [data-art] svg { display: block }
-.relight { position: absolute; left: 0; right: 0; bottom: var(--nav-h); background: var(--void); padding: 6px 20px 14px; display: flex; flex-direction: column; gap: 12px }
+.relight { position: absolute; left: 0; right: 0; bottom: var(--nav-h); background: var(--void); padding: 8px 20px 14px; display: flex; flex-direction: column; gap: 10px }
 .ledge { position: absolute; left: 0; right: 0; top: -19px; height: 20px }
 .ledge svg { width: 100%; height: 100%; display: block }
-.relight .title { font-size: 30px }
+.relight .title { font-size: 26px }
 .relight .row-between .muted { white-space: nowrap; font-size: 13px }
 .arches { display: flex; gap: 0; margin: 0 -12px }
-.offer { display: flex; gap: 8px }
-.offer button { flex: 1; height: 46px; padding: 0 14px }
-.offer button.main { flex: 1.4 }
+.arches svg { width: 28px; height: auto }
+.next { display: flex; align-items: center; gap: 12px }
+.next-arch { flex: none; line-height: 0 }
+.next-arch svg { width: 34px; height: auto }
+.next-txt { flex: 1; min-width: 0 }
+.next-name { margin: 0; font-size: 16px; color: var(--muted) }
+.next-name b { color: var(--bone) }
+.meter { position: relative; display: block; height: 8px; margin-top: 7px; border: 1px solid var(--wine); background: var(--void) }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0 }
+#meter-in { background: repeating-linear-gradient(90deg, var(--ember) 0 3px, var(--flame-deep) 3px 4px); box-shadow: 0 0 8px var(--ember-glow) }
+#meter-have { background: repeating-linear-gradient(90deg, rgba(240, 163, 90, .35) 0 2px, transparent 2px 4px) }
+.next-n { margin: 5px 0 0; font-size: 13px }
+.offer { flex: none; display: flex }
+.offer button { height: 44px; min-width: 112px; padding: 0 20px }
 
 /* Tasks: candles */
 #s-tasks { background: var(--night) }
@@ -336,7 +349,7 @@ details.more[open] summary::before { transform: rotate(45deg) }
 .tick .fine { display: block }
 
 /* Settings: the same sheet as editing a candle */
-.keep-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px }
+.keep-side { display: flex; align-items: center; gap: 8px }
 .ghost-btn.gear { background: var(--void); border-color: var(--wine); color: var(--bone) }
 .set-body { display: flex; flex-direction: column; gap: 22px }
 .set-card { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--line) }
@@ -440,14 +453,17 @@ a.ghost-btn.wide { text-decoration: none }
 .ware-h .sm-btn { margin-left: auto; letter-spacing: 1px }
 .room-done { margin: 4px 0 0; font-size: 14px; color: var(--muted) }
 .nowrap { white-space: nowrap }
-/* On narrow phones the eight windows wrap into two rows of four, so each is a full-size way in (44 px rule) */
+/* The eight windows stay in one row on every phone (calmer Home, 17 Nov 2026): on a 320 px phone each is 40 px wide and
+   48 tall, using the panel's full width, a little under the 44 px rule across but not up and down */
+.arches > button, .arches > span { min-width: 0; min-height: 48px }
 @media (max-width: 359px) {
-  .arches { flex-wrap: wrap }
-  .arches > button, .arches > span { flex: 0 0 25%; min-height: 49px }
   /* and the panel tightens so the keep and the stores still show on short phones */
   .relight { gap: 8px; padding-top: 2px }
   .relight .title { font-size: 23px; white-space: nowrap }
   .relight .row-between .muted { font-size: 12px }
+  .arches { margin: 0 -20px }
+  .next-arch { display: none }
+  .offer button { min-width: 104px; padding: 0 16px }
 }
 
 /* The first start (game-loop.md, "Choosing who you are"; canvas row "First start"): a full-screen sheet over everything */
@@ -504,8 +520,11 @@ a.ghost-btn.wide { text-decoration: none }
 .hero-pic, .hero3d { image-rendering: pixelated; display: block }
 .hero-spot { position: absolute; z-index: 1; bottom: calc(100% - 6px); left: 8px; padding: 0; border: 0; background: none; line-height: 0; cursor: grab }
 .hero-spot:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px }
-.hero-glow { position: absolute; left: 12%; right: 12%; bottom: 14px; height: 26px; border-radius: 50%; background: radial-gradient(ellipse, var(--ember-glow), transparent 70%); pointer-events: none }
-.hero-say { position: absolute; z-index: 1; bottom: calc(100% + 76px); left: 104px; max-width: min(200px, calc(100% - 120px)); margin: 0; padding: 9px 11px; font-size: 14px; font-style: italic; line-height: 1.35; color: var(--bone); background: var(--panel); box-shadow: inset 0 0 0 1px var(--edge); clip-path: var(--cut-sm); pointer-events: none }
+/* A faint warm pool on the ground at the hero's feet, drawn behind the figure, never over it (developer, 17 Nov 2026:
+   it sat on top of the robe as a smudge) */
+.hero-glow { position: absolute; z-index: 0; left: 14%; right: 14%; bottom: -3px; height: 12px; border-radius: 50%; background: radial-gradient(ellipse, rgba(240, 163, 90, .22), rgba(240, 163, 90, .06) 55%, transparent 72%); pointer-events: none }
+#hero-art, #hs-art, #lu-art { position: relative; z-index: 1 }
+.hero-say { position: absolute; z-index: 1; bottom: calc(100% + 88px); left: 104px; max-width: min(180px, calc(100% - 120px)); margin: 0; padding: 8px 10px; font-size: 13px; font-style: italic; line-height: 1.35; color: var(--bone); background: var(--panel); box-shadow: inset 0 0 0 1px var(--edge); clip-path: var(--cut-sm); pointer-events: none }
 .who-row { align-items: baseline; flex-wrap: wrap; row-gap: 4px }
 .who-row .who { flex: 1 1 auto }
 .who { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 0; min-width: 0 }
@@ -516,9 +535,8 @@ a.ghost-btn.wide { text-decoration: none }
 .renown-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--flame-deep), var(--ember), var(--step-on-edge)) }
 .renown.wide { font-size: 14px }
 .renown.wide .renown-bar { flex: 1; width: auto }
-.rooms-count { margin-top: -10px; font-size: 12px }
 .hero-sheet .hs-stage { position: relative; display: flex; justify-content: center; padding-top: calc(56px + env(safe-area-inset-top)) }
-.hero-sheet .hs-stage .hero-glow { bottom: 10px; left: 30%; right: 30% }
+.hero-sheet .hs-stage .hero-glow { bottom: -4px; left: 30%; right: 30%; height: 14px }
 .hero-sheet .room-body { margin-top: 0 }
 .hero-sheet .room-body .title { font-size: 52px }
 .hs-worn li > div { flex: 1; min-width: 0; display: flex; flex-direction: column }
@@ -576,7 +594,7 @@ a.ghost-btn.wide { text-decoration: none }
 .levelup { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 42%, #4a1c14, #1c0a0c 55%, var(--void) 80%); overflow: hidden }
 .lu-body { position: relative; width: 100%; max-width: 380px; display: flex; flex-direction: column; align-items: center; gap: 10px }
 .lu-stage { position: relative; display: flex; justify-content: center; min-height: 200px }
-.lu-stage .hero-glow { left: 18%; right: 18%; bottom: 10px; height: 34px }
+.lu-stage .hero-glow { left: 26%; right: 26%; bottom: -4px; height: 14px }
 .levelup .title { font-size: 40px; line-height: 1.05; color: var(--ink-gilt); text-shadow: 0 0 18px var(--ember-glow) }
 .lu-line { margin: 0; color: var(--bone); font-size: 16px; line-height: 1.45 }
 .lu-bar { align-self: stretch }
