@@ -363,6 +363,18 @@ select.set-in { min-width: 160px }
 .lman .input { flex: 1; min-width: 0 }
 .set-card .lnew { margin-top: 6px }
 .set-card .lnew .input { flex: 1; min-width: 0 }
+.set-row > label .fine { display: block; margin: 2px 0 0 }
+.set-row.pad { padding-left: 52px }
+.set-row.pad > label { min-width: 120px } /* below about 360 px the select drops under its label */
+.set-btns { display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px }
+.set-box { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 2px; padding: 14px; border: 1px solid var(--edge-soft); background: var(--void) }
+.set-box p { margin: 0 }
+.set-box textarea.input { font-size: 13px; word-break: break-all }
+.set-box .ember-btn { min-height: 54px; padding: 0 22px; white-space: nowrap }
+.set-card #bk-msg:empty { display: none }
+a.ghost-btn.wide { text-decoration: none }
+.set-end { padding-top: 14px; border-top: 1px solid var(--line); text-align: center }
+.set-end .set-box { text-align: left }
 
 /* Framed buttons (look.md): a double frame of gilt with pointed ends and a diamond on each tip.
    main = an ember glowing in the dark, for the one main action; plain = deep violet; quiet = silver, for worn or not yet. */
@@ -583,3 +595,4 @@ select.set-in { min-width: 160px }
   .hero-say { left: 92px; font-size: 13px }
   .renown-bar { width: 40px }
 }
+.set-card .fine a { color: var(--ember) }

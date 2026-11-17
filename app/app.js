@@ -274,13 +274,24 @@ const allLists = () => [...new Set([...S.lists, ...S.tasks.map(t => t.list)].fil
 function addList(l) { l = listKey(l); if (!l) return ''; if (!S.lists.includes(l) && S.lists.length < 40) S.lists.push(l); return l }
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 let hadSave = false;
+/* A save that can't be read is kept under DAMAGED, never overwritten, so it can be copied from Settings > Your save and
+   mended by hand. After Start over or a restore the page reloads once with AFTER set ('fresh' or 'restored'). */
+const DAMAGED = 'taskbound.damaged', AFTER = 'taskbound.after';
+let after = '';
+try { after = localStorage.getItem(AFTER) || ''; localStorage.removeItem(AFTER) } catch (e) { }
 function load() {
   let raw = null;
   try { raw = localStorage.getItem(KEY) } catch (e) { }
   if (!raw) raw = nat('savedState') || null; // a new phone: Android's backup copy
-  hadSave = !!raw;
-  try { return cleanState(raw ? JSON.parse(raw) : null) } catch (e) { return fresh() }
+  hadSave = !!raw && after !== 'fresh';
+  try { return cleanState(raw ? JSON.parse(raw) : null) } catch (e) {
+    try { if (!localStorage.getItem(DAMAGED)) localStorage.setItem(DAMAGED, raw) } catch (e2) { }
+    const copy = nat('savedState'); // Android's copy may still be whole
+    if (copy && copy !== raw) try { return cleanState(JSON.parse(copy)) } catch (e3) { }
+    return fresh();
+  }
 }
+const damagedSave = () => { try { return localStorage.getItem(DAMAGED) || '' } catch (e) { return '' } };
 let S = load();
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) { toast("Couldn't save. Your phone may be low on space.") }
@@ -1088,11 +1099,12 @@ function exactTipCheck() {
 }
 
 /* ---------- settings ---------- */
-/* Pawgress's Settings, shortened to what Taskbound has (look.md): Reminders (Android only), grouped Daily / Notify me
-   about / More, then Tasks and Offload with the lists. A time or option shows only while its switch is on. */
-let setFrom = null;
+/* Settings (look.md, tasks.md), in the order you'd look: who you are; how candles and the well behave, with the lists;
+   reminders (Android only: Each day, Candles, Also); your save (backup code, restore); about; then Start over, quiet at
+   the foot. A time or option shows only while its switch is on. */
+let setFrom = null, bkOpen = false, bkArmed = false, bkMsg = '', resetOpen = false;
 function openSettings() {
-  setFrom = document.activeElement; renderSettings();
+  setFrom = document.activeElement; bkOpen = bkArmed = resetOpen = false; bkMsg = ''; renderSettings();
   $('#settings').hidden = false; $('#app').setAttribute('aria-hidden', 'true'); $('#settings').scrollTop = 0;
   setTimeout(() => $('#close-settings').focus(), 30);
 }
@@ -1100,48 +1112,84 @@ function closeSettings() {
   $('#settings').hidden = true; $('#app').removeAttribute('aria-hidden');
   if (setFrom && setFrom.focus && document.contains(setFrom)) setFrom.focus();
 }
+const CONTACT = 'app.taskbound@gmail.com';
+const SITE_URL = 'https://offloadapps.github.io/taskbound-site/'; // the website (developer, 17 Nov 2026): Share Taskbound and the privacy policy
 const sw = (k, on, label, extra = '') => `<div class="set-row"><label class="switch"><input type="checkbox" data-rem="${k}"${on ? ' checked' : ''}><span class="knob" aria-hidden="true"></span><span>${label}</span></label>${extra}</div>`;
-const timeIn = (attr, v, label) => `<input class="input set-in" type="time" ${attr} value="${v}" aria-label="${label}">`;
-const pick = (attr, opts, v, label) => `<select class="input set-in" ${attr} aria-label="${label}">${opts.map(([x, l]) => `<option value="${x}"${String(v) === String(x) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+const timeIn = (attr, v, label) => `<input class="input set-in" type="time" ${attr} value="${v}"${label ? ` aria-label="${label}"` : ''}>`;
+const pick = (attr, opts, v, label) => `<select class="input set-in" ${attr}${label ? ` aria-label="${label}"` : ''}>${opts.map(([x, l]) => `<option value="${x}"${String(v) === String(x) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+const subRow = (id, label, ctl) => `<div class="set-row sub"><label for="${id}" class="fine">${label}</label>${ctl}</div>`;
+const card = (id, title, body) => `<section class="set-card" aria-labelledby="${id}"><h3 id="${id}" class="set-h">${title}</h3>${body}</section>`;
+// Version details, for About and the feedback email: from Android when there, else this is the web version.
+function appInfo() { try { const a = nat('appInfo'); return a ? JSON.parse(a) : null } catch (e) { return null } }
+function feedbackHref() {
+  const a = appInfo(), ver = a ? `Taskbound ${a.version} (build ${a.code}) on Android ${a.android}` : 'Taskbound (web version)';
+  return `mailto:${CONTACT}?subject=${encodeURIComponent('Taskbound feedback')}&body=${encodeURIComponent(`\n\n\n---\n${ver}`)}`;
+}
 function renderSettings() {
   // A box being typed in sends its change before it is redrawn, not halfway through.
   const f = document.activeElement; if (f && f !== document.body && $('#set-body').contains(f)) f.blur();
-  const r = S.rem; let h = '';
-  if (NATIVE) {
-    h += `<section class="set-card" aria-labelledby="set-rem-h"><h3 id="set-rem-h" class="set-h">Reminders</h3>`;
-    if (nat('canNotify') === false) h += `<p class="fine">Notifications are switched off for Taskbound.</p><div><button type="button" class="ghost-btn wide" data-set="allow-notify">Allow notifications</button></div>`;
-    h += `<p class="group-h">Daily</p>
-      ${sw('morning', r.morning.on, 'Morning prompt', r.morning.on ? timeIn('data-remt="morning"', r.morning.t, 'Morning prompt time') : '')}
-      ${sw('evening', r.evening.on, 'Evening prompt', r.evening.on ? timeIn('data-remt="evening"', r.evening.t, 'Evening prompt time') : '')}
-      ${sw('brief', r.brief.on, 'Daily briefing')}
-      ${r.brief.on ? `<div class="set-row sub"><label for="rem-am" class="fine">Today's candles at</label>${timeIn('id="rem-am" data-remb="am"', r.brief.am, '').replace(' aria-label=""', '')}</div>
-      <div class="set-row sub"><label for="rem-pm" class="fine">Tomorrow's candles at</label>${timeIn('id="rem-pm" data-remb="pm"', r.brief.pm, '').replace(' aria-label=""', '')}</div>` : ''}
-      <p class="group-h">Notify me about</p>
-      ${sw('tasks', r.tasks, 'Candle reminders')}
-      ${r.tasks ? `<div class="set-row sub"><label for="rem-def" class="fine">Default reminder</label>${pick('id="rem-def" data-remsel="defMin"', REM_OPTS, r.defMin, 'Default reminder').replace(' aria-label="Default reminder"', '')}</div>` : ''}
-      <div class="set-row"><label for="rem-nag">Still to do</label>${pick('id="rem-nag" data-remsel="nag"', [[0, 'Off'], [120, 'Every 2 hours'], [240, 'Every 4 hours']], r.nag, 'Still to do').replace(' aria-label="Still to do"', '')}</div>
-      ${sw('journeys', r.journeys, 'Back from a journey')}
-      <p class="group-h">More</p>
-      ${sw('quick', r.quick, 'Quick add in notifications')}
-      ${NATIVE.canExact ? sw('exact', r.exact, 'Reminders on the minute') + (r.exact && !canExact() ? `<p class="fine">Taskbound needs Alarms and reminders access for this.</p><div><button type="button" class="ghost-btn wide" data-set="allow-exact">Allow</button></div>` : '') : ''}
-      <div><button type="button" class="ghost-btn wide" data-set="notif-settings">Notification settings</button></div></section>`;
-  }
-  h = `<section class="set-card" aria-labelledby="set-you-h"><h3 id="set-you-h" class="set-h">Who you are</h3>
-    <div class="set-you">${picTag(fig(), 12, esc(who()) + ' the ' + heroWord())}<div>
+  const r = S.rem, ls = allLists(), a = appInfo(), dmg = damagedSave();
+  let h = card('set-you-h', 'Who you are', `<div class="set-you">${picTag(fig(), 12, esc(who()) + ' the ' + heroWord())}<div>
     <div class="field"><label for="set-name" class="lbl">Your name</label><input id="set-name" class="input" type="text" maxlength="${NAME_MAX}" autocomplete="off" spellcheck="false" data-heroname value="${esc(S.hero.name)}" placeholder="Bramble"></div>
     <p class="fine">${CALLING[S.hero.cls].name} · ${titleOf(renownLevel(S.renown))}</p>
-    <button type="button" class="ghost-btn wide" data-set="look">Change your look</button></div></div></section>` + h;
-  const ls = allLists();
-  h += `<section class="set-card" aria-labelledby="set-tasks-h"><h3 id="set-tasks-h" class="set-h">Tasks and Offload</h3>
-    <div class="set-row"><label for="cfg-size">Default size</label>${pick('id="cfg-size" data-cfgsel="defSize"', Object.entries(SIZES).map(([k, z]) => [k, z.label]), S.cfg.defSize, '').replace(' aria-label=""', '')}</div>
-    <p class="fine">For lines the well can't size.</p>
-    <div class="set-row"><label for="cfg-snooze">Not today returns</label>${pick('id="cfg-snooze" data-cfgsel="snooze"', [[1, 'Tomorrow'], [2, 'In 2 days'], [7, 'Next week']], S.cfg.snooze, '').replace(' aria-label=""', '')}</div>
+    <button type="button" class="ghost-btn wide" data-set="look">Change your look</button></div></div>`);
+  h += card('set-tasks-h', 'Candles and the well', `
+    <div class="set-row"><label for="cfg-size">Default size<span class="fine">For lines the well can't size</span></label>${pick('id="cfg-size" data-cfgsel="defSize"', Object.entries(SIZES).map(([k, z]) => [k, z.label]), S.cfg.defSize)}</div>
+    <div class="set-row"><label for="cfg-snooze">Not today returns</label>${pick('id="cfg-snooze" data-cfgsel="snooze"', [[1, 'Tomorrow'], [2, 'In 2 days'], [7, 'Next week']], S.cfg.snooze)}</div>
     <p class="group-h">Lists</p>
     ${ls.length ? `<ul class="lman">${ls.map(l => `<li><input class="input" type="text" maxlength="20" value="${esc(listName(l))}" data-listname="${esc(l)}" aria-label="Rename ${esc(listName(l))}"><button type="button" class="linkbtn" data-set="list-del" data-v="${esc(l)}" aria-label="Remove ${esc(listName(l))}">Remove</button></li>`).join('')}</ul>`
       : `<p class="fine">Lists keep candles apart: home, work, the allotment. Type #home on a line in the well, or make one here.</p>`}
-    <form class="lnew" data-listform="settings"><label for="set-list-in" class="sr">New list name</label><input id="set-list-in" class="input" type="text" maxlength="20" autocomplete="off" placeholder="New list"><button type="submit" class="ghost-btn wide">Add</button></form>
-  </section>`;
+    <form class="lnew" data-listform="settings"><label for="set-list-in" class="sr">New list name</label><input id="set-list-in" class="input" type="text" maxlength="20" autocomplete="off" placeholder="New list"><button type="submit" class="ghost-btn wide">Add</button></form>`);
+  if (NATIVE) h += card('set-rem-h', 'Reminders', `
+    ${nat('canNotify') === false ? `<p class="fine">Notifications are switched off for Taskbound.</p><div><button type="button" class="ghost-btn wide" data-set="allow-notify">Allow notifications</button></div>` : ''}
+    <p class="group-h">Each day</p>
+    ${sw('morning', r.morning.on, 'Morning prompt', r.morning.on ? timeIn('data-remt="morning"', r.morning.t, 'Morning prompt time') : '')}
+    ${sw('evening', r.evening.on, 'Evening prompt', r.evening.on ? timeIn('data-remt="evening"', r.evening.t, 'Evening prompt time') : '')}
+    ${sw('brief', r.brief.on, 'Daily briefing')}
+    ${r.brief.on ? subRow('rem-am', "Today's candles at", timeIn('id="rem-am" data-remb="am"', r.brief.am)) + subRow('rem-pm', "Tomorrow's candles at", timeIn('id="rem-pm" data-remb="pm"', r.brief.pm)) : ''}
+    <p class="group-h">Candles</p>
+    ${sw('tasks', r.tasks, 'Candle reminders')}
+    ${r.tasks ? subRow('rem-def', 'Default reminder', pick('id="rem-def" data-remsel="defMin"', REM_OPTS, r.defMin)) : ''}
+    <div class="set-row pad"><label for="rem-nag">Still to do<span class="fine">For candles whose day has gone by</span></label>${pick('id="rem-nag" data-remsel="nag"', [[0, 'Off'], [120, 'Every 2 hours'], [240, 'Every 4 hours']], r.nag)}</div>
+    <p class="group-h">Also</p>
+    ${sw('journeys', r.journeys, 'Back from a journey')}
+    ${sw('quick', r.quick, 'Quick add in notifications')}
+    ${NATIVE.canExact ? sw('exact', r.exact, 'Reminders on the minute') + (r.exact && !canExact() ? `<p class="fine">Taskbound needs Alarms and reminders access for this.</p><div><button type="button" class="ghost-btn wide" data-set="allow-exact">Allow</button></div>` : '') : ''}
+    <div><button type="button" class="linkbtn" data-set="notif-settings">Your phone's notification settings</button></div>`);
+  h += card('set-save-h', 'Your save', `
+    <p class="fine">Everything stays on this ${NATIVE ? 'phone' : 'browser'}. A backup code carries your keep to a new phone, or back after a reinstall.</p>
+    <div class="set-btns"><button type="button" class="ghost-btn wide" data-set="bk-copy">Copy backup code</button><button type="button" class="linkbtn" data-set="bk-open" aria-expanded="${bkOpen}">Restore from a code</button></div>
+    ${bkOpen ? `<div class="set-box"><label for="bk-text" class="lbl">Backup code</label><textarea id="bk-text" class="input" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste the whole code here"></textarea>
+      <div class="set-btns"><button type="button" class="ember-btn" data-set="bk-restore">${bkArmed ? 'Replace my keep' : 'Restore'}</button><button type="button" class="linkbtn" data-set="bk-cancel">Cancel</button></div></div>` : ''}
+    <p class="fine" id="bk-msg" role="status">${esc(bkMsg)}</p>
+    ${dmg ? `<p class="fine">An older save here couldn't be read. It has been kept, not deleted: copy it and send it to ${CONTACT} if you'd like help getting it back.</p><div><button type="button" class="linkbtn" data-set="copy-damaged">Copy the unreadable save</button></div>` : ''}`);
+  h += card('set-about-h', 'About', `
+    <p>Taskbound ${a ? `${esc(a.version)} <span class="fine">(build ${esc(String(a.code))})</span>` : '<span class="fine">(web version)</span>'}</p>
+    <div class="set-btns"><a class="ghost-btn wide" href="${feedbackHref()}">Send feedback</a>${SITE_URL ? '<button type="button" class="linkbtn" data-set="share">Share Taskbound</button>' : ''}</div>
+    <p class="fine">${SITE_URL ? `<a href="${SITE_URL}privacy.html" target="_blank" rel="noopener">Privacy policy</a> · ` : ''}No accounts, no ads, nothing sent anywhere. Fonts: Jacquard 24 and Atkinson Hyperlegible, under the SIL Open Font Licence.</p>`);
+  h += `<section class="set-end" aria-label="Start over">${resetOpen ? `<div class="set-box">
+      <p><b>Start over?</b></p>
+      <p class="fine">Every candle, room, piece of silver and gear goes, and the keep falls asleep again. Your settings stay. This can't be undone, so copy a backup code first if you might want it back.</p>
+      <div class="set-btns"><button type="button" class="ember-btn" data-set="reset-go">Start over</button><button type="button" class="linkbtn" data-set="reset-no">Keep everything</button></div></div>`
+    : '<button type="button" class="linkbtn" data-set="reset">Start over</button>'}</section>`;
   $('#set-body').innerHTML = h;
+}
+// Backup codes (Pawgress's, abf2cc6): the whole save as base64 after TASKBOUND1. Spaces and line breaks in a pasted
+// code are ignored (email apps wrap long lines). A restored save goes through cleanState like any other.
+const BK = 'TASKBOUND1.';
+const backupCode = () => BK + btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+function readCode(c) {
+  c = String(c || '').replace(/\s+/g, ''); if (c.indexOf(BK) !== 0) return null;
+  try { const o = JSON.parse(decodeURIComponent(escape(atob(c.slice(BK.length))))); return o && typeof o === 'object' && Array.isArray(o.tasks) && o.hero && typeof o.hero === 'object' ? o : null } catch (e) { return null }
+}
+function copyText(text, done, fail) {
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail); else fail();
+}
+// Start over and restore both reload the page, so nothing from the old keep (Undo, a picked list, timers) lingers.
+function reloadWith(state, why) {
+  S = state; save(); syncReminders();
+  try { localStorage.setItem(AFTER, why) } catch (e) { }
+  location.reload();
 }
 // Renaming a list moves its candles with it; removing one leaves its candles where they are, with Undo.
 function renameList(from, to) {
@@ -1158,12 +1206,38 @@ function removeList(l) {
   });
 }
 function settingsAct(b) {
-  const a = b.dataset.set;
+  const a = b.dataset.set, focus = sel => { const f = $('#set-body ' + sel); if (f) f.focus() };
   if (a === 'allow-notify') { S.askedNotify = true; save(); nat('requestPermission'); setTimeout(renderSettings, 1500) }
   else if (a === 'allow-exact') nat('requestExact');
   else if (a === 'notif-settings') nat('openNotificationSettings');
   else if (a === 'list-del') removeList(b.dataset.v);
   else if (a === 'look') { closeSettings(); openCreator('edit') }
+  else if (a === 'bk-copy') {
+    const code = backupCode();
+    copyText(code, () => { bkMsg = ''; renderSettings(); toast('Backup code copied. Keep it somewhere safe, like an email to yourself.') }, () => {
+      // Copying isn't allowed here: show the code to copy by hand.
+      bkOpen = true; bkArmed = false; bkMsg = "Couldn't copy here. Select the code above and copy it yourself."; renderSettings();
+      const t = $('#bk-text'); t.value = code; t.focus(); t.select();
+    });
+  }
+  else if (a === 'bk-open') { bkOpen = !bkOpen; bkArmed = false; bkMsg = ''; renderSettings(); focus(bkOpen ? '#bk-text' : '[data-set="bk-open"]') }
+  else if (a === 'bk-cancel') { bkOpen = bkArmed = false; bkMsg = ''; renderSettings(); focus('[data-set="bk-open"]') }
+  else if (a === 'bk-restore') {
+    const text = $('#bk-text').value, o = readCode(text);
+    if (!o) { bkArmed = false; bkMsg = text.trim() ? "That doesn't look like a Taskbound backup code. Paste the whole code, from TASKBOUND1. to the end." : 'Paste a backup code first.' }
+    else if (!bkArmed) { bkArmed = true; bkMsg = `This replaces the keep on this ${NATIVE ? 'phone' : 'browser'} with the one in the code. Tap Replace my keep to go ahead.` }
+    else return reloadWith(cleanState(o), 'restored');
+    renderSettings(); const t = $('#bk-text'); t.value = text; focus(o ? '[data-set="bk-restore"]' : '#bk-text');
+  }
+  else if (a === 'copy-damaged') copyText(damagedSave(), () => toast('Unreadable save copied.'), () => toast("Couldn't copy here."));
+  else if (a === 'share') { const t = `Taskbound: a gentle task app with a strange, dark-fantasy heart. ${SITE_URL}`; if (NATIVE && NATIVE.share) nat('share', t); else if (navigator.share) navigator.share({ text: t }).catch(() => { }); else copyText(t, () => toast('Link copied.'), () => toast(SITE_URL)) }
+  else if (a === 'reset') { resetOpen = true; renderSettings(); focus('[data-set="reset-no"]') }
+  else if (a === 'reset-no') { resetOpen = false; renderSettings(); focus('[data-set="reset"]') }
+  else if (a === 'reset-go') {
+    // Settings stay (reminders, Tasks and the well); everything else starts again, from the first start.
+    const keep = { rem: S.rem, cfg: S.cfg, askedNotify: S.askedNotify, exactTip: S.exactTip };
+    reloadWith(Object.assign(fresh(), keep), 'fresh');
+  }
 }
 $('#set-body').addEventListener('change', e => {
   const t = e.target, r = S.rem;
@@ -1546,5 +1620,6 @@ $('#close-hero').addEventListener('click', () => closeHero());
 document.addEventListener('input', e => { if (e.target.id === 'first-name' && cr) cr.draft.name = e.target.value });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'first-name') { e.preventDefault(); e.target.blur() } });
 if (!S.met) openCreator(hadSave ? 'again' : 'first'); else if (S.tut) tutGo();
+if (after === 'restored') toast(`Your keep is back. Welcome home, ${who()}.`);
 setTimeout(() => { planSig = ''; syncReminders() }, 1500);
 setInterval(() => { if (document.hidden) return; if (rollDay()) { save(); renderAll() } else renderBackDot() }, 15000);
